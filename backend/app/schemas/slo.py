@@ -7,6 +7,8 @@ class SLOBase(BaseModel):
     description: Optional[str] = None
     target_value: Optional[float] = None
     metric: Optional[str] = None
+    weight: Optional[float] = 0.1
+    active: Optional[bool] = True
     config: Optional[Any] = None
 
     class Config:
@@ -17,6 +19,8 @@ class SLOCreate(BaseModel):
     description: Optional[str] = None
     target_value: Optional[float] = None
     metric: Optional[str] = None
+    weight: Optional[float] = 0.1
+    active: Optional[bool] = True
     config: Optional[Any] = None
 
 class SLOUpdate(BaseModel):
@@ -24,6 +28,8 @@ class SLOUpdate(BaseModel):
     description: Optional[str] = None
     target_value: Optional[float] = None
     metric: Optional[str] = None
+    weight: Optional[float] = None
+    active: Optional[bool] = None
     config: Optional[Any] = None
 
     class Config:

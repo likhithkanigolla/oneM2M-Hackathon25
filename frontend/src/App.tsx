@@ -2,8 +2,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./components/Layout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+import { useAuth } from "./store/useAuth";
 import Index from "./pages/Index";
 import Rooms from "./pages/Rooms";
 import RoomDetails from "./pages/RoomDetails";
@@ -11,9 +13,58 @@ import SLOConfig from "./pages/SLOConfig";
 import LLMInsights from "./pages/LLMInsights";
 import Analytics from "./pages/Analytics";
 import Users from "./pages/Users";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+const AppRoutes = () => {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <Routes>
+      <Route path="/auth" element={isAuthenticated ? <Navigate to="/" replace /> : <Auth />} />
+      <Route element={<Layout />}>
+        <Route path="/" element={
+          <ProtectedRoute>
+            <Index />
+          </ProtectedRoute>
+        } />
+        <Route path="/rooms" element={
+          <ProtectedRoute>
+            <Rooms />
+          </ProtectedRoute>
+        } />
+        <Route path="/room/:id" element={
+          <ProtectedRoute>
+            <RoomDetails />
+          </ProtectedRoute>
+        } />
+        <Route path="/slo" element={
+          <ProtectedRoute>
+            <SLOConfig />
+          </ProtectedRoute>
+        } />
+        <Route path="/insights" element={
+          <ProtectedRoute>
+            <LLMInsights />
+          </ProtectedRoute>
+        } />
+        <Route path="/analytics" element={
+          <ProtectedRoute>
+            <Analytics />
+          </ProtectedRoute>
+        } />
+        <Route path="/users" element={
+          <ProtectedRoute requireAdmin={true}>
+            <Users />
+          </ProtectedRoute>
+        } />
+      </Route>
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -21,19 +72,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route element={<Layout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/rooms" element={<Rooms />} />
-            <Route path="/room/:id" element={<RoomDetails />} />
-            <Route path="/slo" element={<SLOConfig />} />
-            <Route path="/insights" element={<LLMInsights />} />
-            <Route path="/analytics" element={<Analytics />} />
-            <Route path="/users" element={<Users />} />
-          </Route>
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <AppRoutes />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

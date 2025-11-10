@@ -89,7 +89,7 @@ def create_sample(session):
         role="admin", 
         is_active=True,
         assigned_rooms=[1, 2, 3, 4],  # Access to all rooms
-        hashed_password="admin123"
+        password="admin123"
     )
     user2 = User(
         username="operator_a", 
@@ -98,7 +98,7 @@ def create_sample(session):
         role="operator", 
         is_active=True,
         assigned_rooms=[1, 2],  # Limited access
-        hashed_password="operator123"
+        password="operator123"
     )
     user3 = User(
         username="operator_b", 
@@ -107,7 +107,7 @@ def create_sample(session):
         role="operator", 
         is_active=True,
         assigned_rooms=[3, 4],  # Limited access
-        hashed_password="operator456"
+        password="operator456"
     )
     
     session.add_all([user1, user2, user3])

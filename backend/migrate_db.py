@@ -116,6 +116,49 @@ def update_user_data():
             WHERE username = 'operator'
         """))
 
+def migrate_slos_table():
+    """Update SLOs table to include weight and active columns"""
+    logger.info("Migrating SLOs table")
+    
+    inspector = inspect(engine)
+    existing_columns = [col['name'] for col in inspector.get_columns('slos')]
+    
+    with engine.begin() as conn:
+        if 'weight' not in existing_columns:
+            logger.info("Adding weight column to slos table")
+            conn.execute(text("ALTER TABLE slos ADD COLUMN weight FLOAT DEFAULT 0.1"))
+            
+        if 'active' not in existing_columns:
+            logger.info("Adding active column to slos table")
+            conn.execute(text("ALTER TABLE slos ADD COLUMN active BOOLEAN DEFAULT TRUE"))
+
+def update_slo_data():
+    """Update existing SLO data with default weights"""
+    logger.info("Updating SLO data with weights")
+    
+    with engine.begin() as conn:
+        # Set reasonable default weights for existing SLOs
+        conn.execute(text("""
+            UPDATE slos SET 
+                weight = 0.33,
+                active = TRUE
+            WHERE name = 'Comfort' AND weight IS NULL
+        """))
+        
+        conn.execute(text("""
+            UPDATE slos SET 
+                weight = 0.33,
+                active = TRUE
+            WHERE name = 'Energy Efficiency' AND weight IS NULL
+        """))
+        
+        conn.execute(text("""
+            UPDATE slos SET 
+                weight = 0.34,
+                active = TRUE
+            WHERE name = 'Reliability' AND weight IS NULL
+        """))
+
 def main():
     """Run all migrations"""
     logger.info("Starting database migration...")
@@ -123,8 +166,10 @@ def main():
     try:
         migrate_scenarios_table()
         migrate_users_table()
+        migrate_slos_table()
         update_scenario_data()
         update_user_data()
+        update_slo_data()
         
         logger.info("Database migration completed successfully!")
         

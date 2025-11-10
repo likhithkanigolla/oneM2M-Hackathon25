@@ -6,6 +6,7 @@ from app.api.routes.slos import router as slos_router
 from app.api.routes.scenarios import router as scenarios_router
 from app.api.routes.users import router as users_router
 from app.api.routes.analytics import router as analytics_router
+from app.api.routes.auth import router as auth_router
 from app.database import engine, Base
 # ensure models are imported so metadata is registered
 import app.models  # noqa: F401
@@ -20,6 +21,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router, prefix="/api/auth", tags=["auth"])
 app.include_router(rooms_router, prefix="/api/rooms", tags=["rooms"])
 app.include_router(agents_router, prefix="/api/agents", tags=["agents"])
 app.include_router(slos_router, prefix="/api/slos", tags=["slos"])
