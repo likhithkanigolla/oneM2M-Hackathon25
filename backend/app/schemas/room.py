@@ -24,15 +24,24 @@ class RoomBase(BaseModel):
     class Config:
         from_attributes = True
 
-class RoomCreate(RoomBase):
+class RoomCreate(BaseModel):
     name: str
+    gsi: Optional[float] = 0.0
+    aq: Optional[int] = 80
+    temp: Optional[float] = 22.0
+    occupancy: Optional[int] = 0
+    position: Optional[Any] = None
+
+    class Config:
+        from_attributes = True
 
 class RoomUpdate(BaseModel):
-    gsi: Optional[float]
-    aq: Optional[int]
-    temp: Optional[float]
-    occupancy: Optional[int]
-    position: Optional[Any]
+    name: Optional[str] = None
+    gsi: Optional[float] = None
+    aq: Optional[int] = None
+    temp: Optional[float] = None
+    occupancy: Optional[int] = None
+    position: Optional[Any] = None
 
     class Config:
         from_attributes = True

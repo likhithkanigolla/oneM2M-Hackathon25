@@ -3,7 +3,9 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
 from app.services.room_service import RoomService
-from app.schemas.room import RoomBase
+from app.schemas.room import RoomBase, RoomCreate, RoomUpdate
+from app.auth import require_admin
+from app.models.user import User
 from app.utils.websocket import manager
 
 router = APIRouter()
@@ -20,6 +22,29 @@ async def get_room(room_id: int, db: Session = Depends(get_db)):
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
     return room
+
+@router.post("/", response_model=RoomBase)
+async def create_room(room: RoomCreate, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    """Create new room (admin only)"""
+    service = RoomService(db)
+    return service.create_room(room)
+
+@router.put("/{room_id}", response_model=RoomBase)
+async def update_room(room_id: int, room: RoomUpdate, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    """Update room (admin only)"""
+    service = RoomService(db)
+    updated_room = service.update_room(room_id, room)
+    if not updated_room:
+        raise HTTPException(status_code=404, detail="Room not found")
+    return updated_room
+
+@router.delete("/{room_id}")
+async def delete_room(room_id: int, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    """Delete room (admin only)"""
+    service = RoomService(db)
+    if not service.delete_room(room_id):
+        raise HTTPException(status_code=404, detail="Room not found")
+    return {"message": "Room deleted successfully"}
 
 
 @router.patch("/{room_id}/devices/{device_name}")

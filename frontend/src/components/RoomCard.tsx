@@ -1,12 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Room } from "@/store/useRooms";
-import { Users, Thermometer, Wind } from "lucide-react";
+import { Users, Thermometer, Wind, Edit2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface RoomCardProps {
   room: Room;
   onClick: () => void;
+  showAdminActions?: boolean;
+  onEdit?: (room: Room) => void;
+  onDelete?: (room: Room) => void;
 }
 
 const getGSIColor = (gsi: number) => {
@@ -21,7 +25,7 @@ const getGSIGlow = (gsi: number) => {
   return "glow-comfort";
 };
 
-export const RoomCard = ({ room, onClick }: RoomCardProps) => {
+export const RoomCard = ({ room, onClick, showAdminActions, onEdit, onDelete }: RoomCardProps) => {
   const gsiColor = getGSIColor(room.gsi);
   const gsiGlow = getGSIGlow(room.gsi);
 
@@ -36,18 +40,48 @@ export const RoomCard = ({ room, onClick }: RoomCardProps) => {
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <CardTitle className="text-lg font-semibold">{room.name}</CardTitle>
-          <Badge
-            variant="outline"
-            className={cn(
-              "font-mono text-sm",
-              gsiColor === "success" && "border-energy text-energy",
-              gsiColor === "warning" && "border-reliability text-reliability",
-              gsiColor === "danger" && "border-danger text-danger"
+          <div className="flex-1">
+            <CardTitle className="text-lg font-semibold">{room.name}</CardTitle>
+          </div>
+          <div className="flex items-center gap-2">
+            <Badge
+              variant="outline"
+              className={cn(
+                "font-mono text-sm",
+                gsiColor === "success" && "border-energy text-energy",
+                gsiColor === "warning" && "border-reliability text-reliability",
+                gsiColor === "danger" && "border-danger text-danger"
+              )}
+            >
+              GSI {(room.gsi * 100).toFixed(0)}
+            </Badge>
+            {showAdminActions && (
+              <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEdit?.(room);
+                  }}
+                  className="h-8 w-8 p-0"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete?.(room);
+                  }}
+                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             )}
-          >
-            GSI {(room.gsi * 100).toFixed(0)}
-          </Badge>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

@@ -37,6 +37,9 @@ interface RoomState {
   selectRoom: (room: Room | null) => void;
   updateRoomDevice: (roomId: number, deviceName: string, status: 'ON' | 'OFF') => Promise<void>;
   fetchRooms: () => Promise<void>;
+  createRoom: (room: Omit<Room, 'id' | 'devices'>) => Promise<void>;
+  updateRoom: (id: number, room: Partial<Room>) => Promise<void>;
+  deleteRoom: (id: number) => Promise<void>;
 }
 
 export const useRooms = create<RoomState>((set, get) => ({
@@ -69,6 +72,69 @@ export const useRooms = create<RoomState>((set, get) => ({
       set({ rooms });
     } catch (err) {
       console.error('fetchRooms error', err);
+    }
+  },
+
+  createRoom: async (room) => {
+    try {
+      const token = JSON.parse(localStorage.getItem('smart-room-auth') || '{}')?.state?.token;
+      const res = await fetch(`${API_BASE}/api/rooms/`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(room),
+      });
+      if (!res.ok) throw new Error('Failed to create room');
+      const newRoom = await res.json();
+      set((state) => ({
+        rooms: [...state.rooms, newRoom],
+      }));
+    } catch (err) {
+      console.error('createRoom error', err);
+      throw err;
+    }
+  },
+
+  updateRoom: async (id, room) => {
+    try {
+      const token = JSON.parse(localStorage.getItem('smart-room-auth') || '{}')?.state?.token;
+      const res = await fetch(`${API_BASE}/api/rooms/${id}`, {
+        method: 'PUT',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(room),
+      });
+      if (!res.ok) throw new Error('Failed to update room');
+      const updatedRoom = await res.json();
+      set((state) => ({
+        rooms: state.rooms.map((r) => (r.id === id ? updatedRoom : r)),
+      }));
+    } catch (err) {
+      console.error('updateRoom error', err);
+      throw err;
+    }
+  },
+
+  deleteRoom: async (id) => {
+    try {
+      const token = JSON.parse(localStorage.getItem('smart-room-auth') || '{}')?.state?.token;
+      const res = await fetch(`${API_BASE}/api/rooms/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+      });
+      if (!res.ok) throw new Error('Failed to delete room');
+      set((state) => ({
+        rooms: state.rooms.filter((r) => r.id !== id),
+      }));
+    } catch (err) {
+      console.error('deleteRoom error', err);
+      throw err;
     }
   },
 }));
