@@ -1,0 +1,120 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+
+    --card: 217 33% 17%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 215 28% 17%;
+    --muted-foreground: 217 11% 65%;
+
+    --accent: 262 83% 58%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
+    --ring: 217 91% 60%;
+
+    --radius: 0.75rem;
+
+    /* SLO Colors */
+    --comfort: 199 89% 48%;
+    --energy: 142 76% 36%;
+    --reliability: 25 95% 53%;
+
+    /* Status Colors */
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
+    --danger: 0 84% 60%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%), hsl(262 83% 58%));
+    --gradient-comfort: linear-gradient(135deg, hsl(199 89% 48%), hsl(217 91% 60%));
+    --gradient-energy: linear-gradient(135deg, hsl(142 76% 36%), hsl(158 64% 52%));
+    --gradient-reliability: linear-gradient(135deg, hsl(25 95% 53%), hsl(38 92% 50%));
+    --gradient-card: linear-gradient(180deg, hsl(217 33% 17%), hsl(215 28% 14%));
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --glow-comfort: 0 0 20px hsla(199 89% 48% / 0.5);
+    --glow-energy: 0 0 20px hsla(142 76% 36% / 0.5);
+    --glow-reliability: 0 0 20px hsla(25 95% 53% / 0.5);
+
+    --sidebar-background: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 222 47% 11%;
+    --sidebar-accent: 217 33% 17%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 215 28% 17%;
+    --sidebar-ring: 217 91% 60%;
+  }
+
+  .dark {
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: 'cv11', 'ss01';
+  }
+}
+
+@layer utilities {
+  .glow-comfort {
+    box-shadow: var(--glow-comfort);
+  }
+  
+  .glow-energy {
+    box-shadow: var(--glow-energy);
+  }
+  
+  .glow-reliability {
+    box-shadow: var(--glow-reliability);
+  }
+
+  .animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+
+  .animate-glow {
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+}
+
+@keyframes glow {
+  from {
+    filter: brightness(1) drop-shadow(0 0 5px currentColor);
+  }
+  to {
+    filter: brightness(1.2) drop-shadow(0 0 15px currentColor);
+  }
+}
