@@ -1,20 +1,20 @@
 import { useState, useEffect } from "react";
+import { useAnalytics } from "@/store/useAnalytics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Brain, Target, Zap, TrendingUp } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
 import { useAgents } from "@/store/useAgents";
-import { useAnalytics } from "@/store/useAnalytics";
 
 export default function LLMInsights() {
   const { agents, fetchAgents } = useAgents();
-  const { decisionLogs, fetchDecisionLogs } = useAnalytics();
+  const { historicalData, fetchHistoricalData } = useAnalytics();
 
   useEffect(() => {
     fetchAgents();
-    fetchDecisionLogs();
-  }, [fetchAgents, fetchDecisionLogs]);
+    fetchHistoricalData();
+  }, [fetchAgents, fetchHistoricalData]);
 
   // Transform agents data to match the expected format or use fallback
   const agentsWithInsights = agents.length > 0 ? agents.map(agent => ({
@@ -61,8 +61,8 @@ export default function LLMInsights() {
 
   const [selectedAgent, setSelectedAgent] = useState(agentsWithInsights[0]);
 
-  // Historical accuracy data
-  const historicalData = [
+  // Use backend historical data or fallback
+  const chartHistoricalData = historicalData.length > 0 ? historicalData : [
     { time: "10:00", comfort: 0.7, energy: 0.85, reliability: 0.8 },
     { time: "11:00", comfort: 0.75, energy: 0.82, reliability: 0.85 },
     { time: "12:00", comfort: 0.8, energy: 0.78, reliability: 0.82 },
@@ -201,7 +201,7 @@ export default function LLMInsights() {
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={historicalData}>
+                  <LineChart data={chartHistoricalData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="time" stroke="hsl(var(--foreground))" />
                     <YAxis domain={[0, 1]} stroke="hsl(var(--foreground))" />

@@ -1,100 +1,109 @@
 import { create } from 'zustand';
 
-interface DecisionLog {
-  id: number;
-  room_id: number;
-  agent_id: string;
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
+export interface HistoricalDataPoint {
+  time: string;
+  comfort: number;
+  energy: number;
+  reliability: number;
+}
+
+export interface RecentEvent {
+  time: string;
+  room: string;
+  event: string;
+  impact: string;
+}
+
+export interface AgentDecision {
+  time: string;
+  agent: string;
   decision: string;
+  confidence: number;
   reasoning: string;
-  timestamp: string;
-  confidence?: number;
-  context?: any;
 }
 
-interface RoomMetrics {
-  room_id: number;
-  avg_temperature: number;
-  avg_humidity: number;
-  avg_air_quality: number;
-  energy_consumption: number;
-  comfort_score: number;
-  efficiency_score: number;
-  period: string;
+export interface SLOPerformanceData {
+  id: number;
+  name: string;
+  current_value: number;
+  target_value: number;
+  performance_score: number;
+  unit: string;
 }
 
-interface AgentPerformance {
-  agent_id: string;
-  total_decisions: number;
-  avg_confidence: number;
-  success_rate: number;
-  response_time: number;
-}
-
-interface AnalyticsStore {
-  decisionLogs: DecisionLog[];
-  roomMetrics: RoomMetrics[];
-  agentPerformance: AgentPerformance[];
+interface AnalyticsState {
+  historicalData: HistoricalDataPoint[];
+  recentEvents: RecentEvent[];
+  agentDecisions: AgentDecision[];
+  sloPerformance: SLOPerformanceData[];
   loading: boolean;
-  fetchDecisionLogs: (roomId?: number, agentId?: string, limit?: number) => Promise<void>;
-  fetchRoomMetrics: (roomId: number) => Promise<void>;
-  fetchAgentPerformance: () => Promise<void>;
-  fetchRoomInsights: (roomId: number) => Promise<any>;
+  error: string | null;
+  
+  fetchHistoricalData: () => Promise<void>;
+  fetchRecentEvents: () => Promise<void>;
+  fetchAgentDecisions: (roomId: number) => Promise<void>;
+  fetchSLOPerformance: (roomId: number) => Promise<void>;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
-
-export const useAnalytics = create<AnalyticsStore>((set, get) => ({
-  decisionLogs: [],
-  roomMetrics: [],
-  agentPerformance: [],
+export const useAnalytics = create<AnalyticsState>((set) => ({
+  historicalData: [],
+  recentEvents: [],
+  agentDecisions: [],
+  sloPerformance: [],
   loading: false,
-
-  fetchDecisionLogs: async (roomId, agentId, limit = 100) => {
-    set({ loading: true });
+  error: null,
+  
+  fetchHistoricalData: async () => {
+    set({ loading: true, error: null });
     try {
-      const params = new URLSearchParams();
-      if (roomId) params.append('room_id', roomId.toString());
-      if (agentId) params.append('agent_id', agentId);
-      if (limit) params.append('limit', limit.toString());
-
-      const response = await fetch(`${API_BASE}/api/analytics/decision-logs?${params}`);
-      const decisionLogs = await response.json();
-      set({ decisionLogs, loading: false });
-    } catch (error) {
-      console.error('Failed to fetch decision logs:', error);
-      set({ loading: false });
+      const res = await fetch(`${API_BASE}/api/analytics/historical-data`);
+      if (!res.ok) throw new Error('Failed to fetch historical data');
+      const data = await res.json();
+      set({ historicalData: data, loading: false });
+    } catch (err) {
+      console.error('fetchHistoricalData error:', err);
+      set({ error: err instanceof Error ? err.message : 'Unknown error', loading: false });
     }
   },
-
-  fetchRoomMetrics: async (roomId) => {
+  
+  fetchRecentEvents: async () => {
+    set({ loading: true, error: null });
     try {
-      const response = await fetch(`${API_BASE}/api/analytics/room-metrics/${roomId}`);
-      const metrics = await response.json();
-      set(state => ({
-        roomMetrics: [...state.roomMetrics.filter(m => m.room_id !== roomId), metrics]
-      }));
-    } catch (error) {
-      console.error('Failed to fetch room metrics:', error);
+      const res = await fetch(`${API_BASE}/api/analytics/recent-events`);
+      if (!res.ok) throw new Error('Failed to fetch recent events');
+      const data = await res.json();
+      set({ recentEvents: data, loading: false });
+    } catch (err) {
+      console.error('fetchRecentEvents error:', err);
+      set({ error: err instanceof Error ? err.message : 'Unknown error', loading: false });
     }
   },
-
-  fetchAgentPerformance: async () => {
+  
+  fetchAgentDecisions: async (roomId: number) => {
+    set({ loading: true, error: null });
     try {
-      const response = await fetch(`${API_BASE}/api/analytics/agent-performance`);
-      const agentPerformance = await response.json();
-      set({ agentPerformance });
-    } catch (error) {
-      console.error('Failed to fetch agent performance:', error);
+      const res = await fetch(`${API_BASE}/api/analytics/agent-decisions/${roomId}`);
+      if (!res.ok) throw new Error('Failed to fetch agent decisions');
+      const data = await res.json();
+      set({ agentDecisions: data, loading: false });
+    } catch (err) {
+      console.error('fetchAgentDecisions error:', err);
+      set({ error: err instanceof Error ? err.message : 'Unknown error', loading: false });
     }
   },
-
-  fetchRoomInsights: async (roomId) => {
+  
+  fetchSLOPerformance: async (roomId: number) => {
+    set({ loading: true, error: null });
     try {
-      const response = await fetch(`${API_BASE}/api/analytics/room-insights/${roomId}`);
-      return await response.json();
-    } catch (error) {
-      console.error('Failed to fetch room insights:', error);
-      return null;
+      const res = await fetch(`${API_BASE}/api/analytics/slo-performance/${roomId}`);
+      if (!res.ok) throw new Error('Failed to fetch SLO performance');
+      const data = await res.json();
+      set({ sloPerformance: data, loading: false });
+    } catch (err) {
+      console.error('fetchSLOPerformance error:', err);
+      set({ error: err instanceof Error ? err.message : 'Unknown error', loading: false });
     }
   },
 }));

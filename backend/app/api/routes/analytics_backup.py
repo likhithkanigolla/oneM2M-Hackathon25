@@ -142,15 +142,16 @@ async def get_slo_performance(room_id: int, db: Session = Depends(get_db)):
     performance_data = []
     
     slo_mapping = {
-        "Comfort": {"current": 22.5, "target": 23.0, "score": 0.92},
-        "Energy": {"current": 2.8, "target": 3.0, "score": 0.85}, 
-        "Air Quality": {"current": 420, "target": 400, "score": 0.78},
-        "Reliability": {"current": 99.2, "target": 99.0, "score": 0.96}
+        "Comfort SLO": {"current": 22.5, "target": 23.0, "score": 0.92},
+        "Energy SLO": {"current": 2.8, "target": 3.0, "score": 0.85}, 
+        "Air Quality SLO": {"current": 420, "target": 400, "score": 0.78},
+        "Reliability SLO": {"current": 99.2, "target": 99.0, "score": 0.96}
     }
     
     for slo in slos:
-        if slo.name in slo_mapping:
-            data = slo_mapping[slo.name]
+        slo_name = f"{slo.name} SLO"
+        if slo_name in slo_mapping:
+            data = slo_mapping[slo_name]
         else:
             # Generate random realistic data
             data = {
@@ -169,3 +170,76 @@ async def get_slo_performance(room_id: int, db: Session = Depends(get_db)):
         })
     
     return performance_data
+        DecisionLog.timestamp >= since
+    ).first()
+    
+    return {
+        "room_id": room_id,
+        "room_name": room.name,
+        "current_gsi": room.gsi,
+        "decisions_24h": decisions,
+        "avg_comfort_score": float(avg_scores.avg_comfort or 0),
+        "avg_energy_score": float(avg_scores.avg_energy or 0),
+        "avg_reliability_score": float(avg_scores.avg_reliability or 0),
+    }
+
+@router.get("/agent-performance")
+async def get_agent_performance(db: Session = Depends(get_db)):
+    """Get performance analytics for all agents"""
+    # Last 7 days
+    since = datetime.utcnow() - timedelta(days=7)
+    
+    agents = db.query(Agent).all()
+    results = []
+    
+    for agent in agents:
+        decisions = db.query(DecisionLog).filter(
+            DecisionLog.agent_id == agent.id,
+            DecisionLog.timestamp >= since
+        ).count()
+        
+        avg_scores = db.query(
+            func.avg(DecisionLog.comfort_score).label('avg_comfort'),
+            func.avg(DecisionLog.energy_score).label('avg_energy'),
+            func.avg(DecisionLog.reliability_score).label('avg_reliability')
+        ).filter(
+            DecisionLog.agent_id == agent.id,
+            DecisionLog.timestamp >= since
+        ).first()
+        
+        results.append({
+            "agent_id": agent.id,
+            "agent_name": agent.name,
+            "decisions_7d": decisions,
+            "active": agent.active,
+            "avg_comfort_score": float(avg_scores.avg_comfort or 0),
+            "avg_energy_score": float(avg_scores.avg_energy or 0),
+            "avg_reliability_score": float(avg_scores.avg_reliability or 0),
+        })
+    
+    return results
+
+@router.get("/system-overview")
+async def get_system_overview(db: Session = Depends(get_db)):
+    """Get overall system analytics"""
+    total_rooms = db.query(Room).count()
+    active_agents = db.query(Agent).filter(Agent.active == True).count()
+    total_agents = db.query(Agent).count()
+    
+    # Decisions in last hour
+    since = datetime.utcnow() - timedelta(hours=1)
+    recent_decisions = db.query(DecisionLog).filter(
+        DecisionLog.timestamp >= since
+    ).count()
+    
+    # Average GSI across all rooms
+    avg_gsi = db.query(func.avg(Room.gsi)).scalar() or 0
+    
+    return {
+        "total_rooms": total_rooms,
+        "active_agents": active_agents,
+        "total_agents": total_agents,
+        "decisions_last_hour": recent_decisions,
+        "average_gsi": float(avg_gsi),
+        "timestamp": datetime.utcnow().isoformat()
+    }

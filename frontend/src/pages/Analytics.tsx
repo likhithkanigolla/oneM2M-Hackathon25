@@ -20,30 +20,16 @@ import { useAnalytics } from "@/store/useAnalytics";
 import { useRooms } from "@/store/useRooms";
 
 export default function Analytics() {
-  const { decisionLogs, roomMetrics, agentPerformance, fetchDecisionLogs, fetchAgentPerformance, fetchRoomMetrics } = useAnalytics();
+  const { recentEvents, fetchRecentEvents } = useAnalytics();
   const { rooms, fetchRooms } = useRooms();
 
   useEffect(() => {
     fetchRooms();
-    fetchDecisionLogs();
-    fetchAgentPerformance();
-    // Fetch metrics for first few rooms to get sample data
-    if (rooms.length > 0) {
-      rooms.slice(0, 3).forEach(room => fetchRoomMetrics(room.id));
-    }
-  }, [fetchDecisionLogs, fetchAgentPerformance, fetchRooms, fetchRoomMetrics, rooms]);
+    fetchRecentEvents();
+  }, [fetchRooms, fetchRecentEvents]);
 
-  // Transform backend data for charts or use fallback static data
-  const sloTrends = roomMetrics.length > 0 ? [
-    // Use real data when available - this would need more sophisticated transformation
-    { time: "Mon", comfort: 0.85, energy: 0.78, reliability: 0.92 },
-    { time: "Tue", comfort: 0.82, energy: 0.80, reliability: 0.88 },
-    { time: "Wed", comfort: 0.88, energy: 0.75, reliability: 0.90 },
-    { time: "Thu", comfort: 0.90, energy: 0.72, reliability: 0.95 },
-    { time: "Fri", comfort: 0.87, energy: 0.77, reliability: 0.89 },
-    { time: "Sat", comfort: 0.75, energy: 0.85, reliability: 0.80 },
-    { time: "Sun", comfort: 0.70, energy: 0.90, reliability: 0.82 },
-  ] : [
+  // Use fallback data until backend integration is complete
+  const sloTrends = [
     { time: "Mon", comfort: 0.85, energy: 0.78, reliability: 0.92 },
     { time: "Tue", comfort: 0.82, energy: 0.80, reliability: 0.88 },
     { time: "Wed", comfort: 0.88, energy: 0.75, reliability: 0.90 },
@@ -76,8 +62,8 @@ export default function Analytics() {
     { room: "Conference B", gsi: 0.76 },
   ].sort((a, b) => b.gsi - a.gsi);
 
-  // Recent Events
-  const recentEvents = [
+  // Static recent events - replace with backend data when available
+  const fallbackEvents = [
     {
       time: "15:30",
       room: "Conference A",
@@ -284,7 +270,7 @@ export default function Analytics() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {recentEvents.map((event, idx) => (
+              {(recentEvents.length > 0 ? recentEvents : fallbackEvents).map((event, idx) => (
                 <div
                   key={idx}
                   className="flex gap-3 p-3 rounded-lg bg-muted/20 border border-border/50"

@@ -6,34 +6,18 @@ from datetime import datetime, timedelta
 import random
 
 from app.database import get_db
+from app.schemas.analytics import (
+    HistoricalDataPoint, 
+    RecentEvent, 
+    AgentDecision,
+    SLOPerformanceSchema,
+    SystemEventSchema
+)
 from app.models.room import Room
 from app.models.agent import Agent
 from app.models.slo import SLO
-from app.models.decision_log import DecisionLog
 
-router = APIRouter()
-
-# Pydantic models for responses
-from pydantic import BaseModel
-
-class HistoricalDataPoint(BaseModel):
-    time: str
-    comfort: float
-    energy: float
-    reliability: float
-
-class RecentEvent(BaseModel):
-    time: str
-    room: str
-    event: str
-    impact: str
-
-class AgentDecision(BaseModel):
-    time: str
-    agent: str
-    decision: str
-    confidence: float
-    reasoning: str
+router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 @router.get("/historical-data", response_model=List[HistoricalDataPoint])
 async def get_historical_data(db: Session = Depends(get_db)):
@@ -142,15 +126,16 @@ async def get_slo_performance(room_id: int, db: Session = Depends(get_db)):
     performance_data = []
     
     slo_mapping = {
-        "Comfort": {"current": 22.5, "target": 23.0, "score": 0.92},
-        "Energy": {"current": 2.8, "target": 3.0, "score": 0.85}, 
-        "Air Quality": {"current": 420, "target": 400, "score": 0.78},
-        "Reliability": {"current": 99.2, "target": 99.0, "score": 0.96}
+        "Comfort SLO": {"current": 22.5, "target": 23.0, "score": 0.92},
+        "Energy SLO": {"current": 2.8, "target": 3.0, "score": 0.85}, 
+        "Air Quality SLO": {"current": 420, "target": 400, "score": 0.78},
+        "Reliability SLO": {"current": 99.2, "target": 99.0, "score": 0.96}
     }
     
     for slo in slos:
-        if slo.name in slo_mapping:
-            data = slo_mapping[slo.name]
+        slo_name = f"{slo.name} SLO"
+        if slo_name in slo_mapping:
+            data = slo_mapping[slo_name]
         else:
             # Generate random realistic data
             data = {

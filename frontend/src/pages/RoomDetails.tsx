@@ -2,6 +2,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useRooms } from "@/store/useRooms";
 import { useAgents } from "@/store/useAgents";
+import { useAnalytics } from "@/store/useAnalytics";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -16,11 +17,16 @@ export default function RoomDetails() {
   const navigate = useNavigate();
   const { rooms, updateRoomDevice, fetchRooms } = useRooms();
   const { agents, fetchAgents } = useAgents();
+  const { sloPerformance, agentDecisions, fetchSLOPerformance, fetchAgentDecisions } = useAnalytics();
 
   useEffect(() => {
     fetchRooms();
     fetchAgents();
-  }, [fetchRooms, fetchAgents]);
+    if (id) {
+      fetchSLOPerformance(Number(id));
+      fetchAgentDecisions(Number(id));
+    }
+  }, [fetchRooms, fetchAgents, fetchSLOPerformance, fetchAgentDecisions, id]);
 
   const room = rooms.find((r) => r.id === Number(id));
 
@@ -35,30 +41,44 @@ export default function RoomDetails() {
     );
   }
 
-  // Mock SLO data for radar chart
-  const sloData = [
+  // Transform SLO data for radar chart - use backend data or fallback
+  const sloData = sloPerformance.length > 0 ? [
     {
       slo: "Comfort",
-      Gemini: 0.65,
-      Claude: 0.90,
-      GPT: 0.75,
+      Gemini: sloPerformance.find(s => s.name === "Comfort")?.performance_score || 0.65,
+      Claude: sloPerformance.find(s => s.name === "Comfort")?.performance_score || 0.90,
+      GPT: sloPerformance.find(s => s.name === "Comfort")?.performance_score || 0.75,
     },
     {
       slo: "Energy",
-      Gemini: 0.90,
-      Claude: 0.70,
-      GPT: 0.80,
+      Gemini: sloPerformance.find(s => s.name === "Energy")?.performance_score || 0.90,
+      Claude: sloPerformance.find(s => s.name === "Energy")?.performance_score || 0.70,
+      GPT: sloPerformance.find(s => s.name === "Energy")?.performance_score || 0.80,
     },
     {
       slo: "Reliability",
-      Gemini: 0.80,
-      Claude: 0.95,
-      GPT: 0.85,
+      Gemini: sloPerformance.find(s => s.name === "Reliability")?.performance_score || 0.80,
+      Claude: sloPerformance.find(s => s.name === "Reliability")?.performance_score || 0.95,
+      GPT: sloPerformance.find(s => s.name === "Reliability")?.performance_score || 0.85,
     },
+  ] : [
+    // Fallback data while loading
+    { slo: "Comfort", Gemini: 0.65, Claude: 0.90, GPT: 0.75 },
+    { slo: "Energy", Gemini: 0.90, Claude: 0.70, GPT: 0.80 },
+    { slo: "Reliability", Gemini: 0.80, Claude: 0.95, GPT: 0.85 },
   ];
 
-  // Mock LLM decisions
-  const llmDecisions = [
+  // Use backend agent decisions or fallback
+  const llmDecisions = agentDecisions.length > 0 ? agentDecisions.map(decision => ({
+    agent: decision.agent,
+    goal: "Smart Decision Making",
+    decision: decision.decision,
+    comfort: decision.confidence > 0.8 ? 0.9 : 0.7,
+    energy: decision.confidence,
+    reliability: decision.confidence > 0.85 ? 0.95 : 0.8,
+    reasoning: decision.reasoning,
+  })) : [
+    // Fallback data while loading
     {
       agent: "Gemini",
       goal: "Energy Efficiency",
