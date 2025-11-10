@@ -1,6 +1,16 @@
-# Smart Room Digital Twin - Backend (skeleton)
+# Smart Room Digital Twin - Backend
 
-This folder contains a minimal FastAPI backend scaffold to support the frontend.
+This FastAPI backend provides a complete API for the Smart Room Digital Twin system with PostgreSQL database integration.
+
+## Features
+- **Complete REST API** for rooms, devices, agents, scenarios, SLOs, users, and analytics
+- **PostgreSQL database** with full schema and relationships
+- **Seed data** with realistic smart room configurations
+- **Database migrations** for schema updates
+- **AI agent management** with configurable weights and RAG sources
+- **Scenario management** with priority levels and impact tracking
+- **User management** with role-based access control
+- **Analytics and decision logging** for AI decision tracking
 
 Quick start (macOS / zsh):
 
@@ -41,7 +51,19 @@ source .venv/bin/activate
 python seed_db.py
 ```
 
-4. Run the server:
+4. **For existing databases**, run migration to add new schema features:
+
+```bash
+source .venv/bin/activate
+python migrate_db.py
+```
+
+This will:
+- Add `priority`, `trigger`, `impact` columns to scenarios table
+- Add `full_name`, `role`, `is_active`, `assigned_rooms`, `created_at` columns to users table  
+- Update existing data with proper values
+
+5. Run the server:
 
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000

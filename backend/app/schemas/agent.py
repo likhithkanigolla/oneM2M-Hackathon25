@@ -11,7 +11,7 @@ class AgentBase(BaseModel):
     weight: Optional[float] = 0.33
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class AgentCreate(BaseModel):
     id: str
@@ -31,4 +31,4 @@ class AgentUpdate(BaseModel):
     weight: Optional[float] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

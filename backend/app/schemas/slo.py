@@ -10,7 +10,7 @@ class SLOBase(BaseModel):
     config: Optional[Any] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class SLOCreate(BaseModel):
     name: str
@@ -27,4 +27,4 @@ class SLOUpdate(BaseModel):
     config: Optional[Any] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

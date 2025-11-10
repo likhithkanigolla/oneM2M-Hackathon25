@@ -12,7 +12,7 @@ class ScenarioBase(BaseModel):
     impact: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class ScenarioCreate(BaseModel):
     name: str
@@ -33,4 +33,4 @@ class ScenarioUpdate(BaseModel):
     impact: Optional[str] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True

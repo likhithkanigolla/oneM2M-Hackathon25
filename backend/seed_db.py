@@ -49,19 +49,68 @@ def create_sample(session):
     session.add_all([slo1, slo2, slo3])
     session.commit()
 
-    # Create scenarios
-    scenario1 = Scenario(name="Meeting Priority", description="Prioritize comfort during meetings", active=False, config={"priority": "comfort", "energy_reduction": 0.1})
-    scenario2 = Scenario(name="Energy Shortage", description="Reduce energy consumption", active=False, config={"max_energy": 0.7, "comfort_reduction": 0.2})
-    scenario3 = Scenario(name="System Active", description="Normal operation mode", active=True, config={"balanced": True})
+    # Create scenarios with priority, trigger, and impact information
+    scenario1 = Scenario(
+        name="Meeting Priority", 
+        description="Prioritize comfort during meetings", 
+        active=False, 
+        config={"priority": "comfort", "energy_reduction": 0.1},
+        priority="High",
+        trigger="Meeting detected + time block",
+        impact="Comfort +15%"
+    )
+    scenario2 = Scenario(
+        name="Energy Shortage", 
+        description="Reduce energy consumption", 
+        active=False, 
+        config={"max_energy": 0.7, "comfort_reduction": 0.2},
+        priority="Critical",
+        trigger="Power consumption > 80%", 
+        impact="Energy -25%"
+    )
+    scenario3 = Scenario(
+        name="System Active", 
+        description="Normal operation mode", 
+        active=True, 
+        config={"balanced": True},
+        priority="Low",
+        trigger="Default operation state",
+        impact="Balanced operation"
+    )
     
     session.add_all([scenario1, scenario2, scenario3])
     session.commit()
 
-    # Create users
-    user1 = User(username="admin", email="admin@smartroom.com", is_admin=True, hashed_password="admin123")
-    user2 = User(username="operator", email="operator@smartroom.com", is_admin=False, hashed_password="operator123")
+    # Create users with complete information
+    user1 = User(
+        username="admin", 
+        email="admin@smartroom.ai", 
+        full_name="System Administrator",
+        role="admin", 
+        is_active=True,
+        assigned_rooms=[1, 2, 3, 4],  # Access to all rooms
+        hashed_password="admin123"
+    )
+    user2 = User(
+        username="operator_a", 
+        email="operator.a@smartroom.ai", 
+        full_name="Operator A",
+        role="operator", 
+        is_active=True,
+        assigned_rooms=[1, 2],  # Limited access
+        hashed_password="operator123"
+    )
+    user3 = User(
+        username="operator_b", 
+        email="operator.b@smartroom.ai", 
+        full_name="Operator B",
+        role="operator", 
+        is_active=True,
+        assigned_rooms=[3, 4],  # Limited access
+        hashed_password="operator456"
+    )
     
-    session.add_all([user1, user2])
+    session.add_all([user1, user2, user3])
     session.commit()
 
     print("Seed data created")

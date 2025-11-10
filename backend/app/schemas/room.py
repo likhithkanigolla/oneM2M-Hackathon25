@@ -9,7 +9,7 @@ class DeviceBase(BaseModel):
     services: Optional[Any]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class RoomBase(BaseModel):
     id: Optional[int]
@@ -22,7 +22,7 @@ class RoomBase(BaseModel):
     devices: Optional[List[DeviceBase]] = []
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class RoomCreate(RoomBase):
     name: str
@@ -35,4 +35,4 @@ class RoomUpdate(BaseModel):
     position: Optional[Any]
 
     class Config:
-        orm_mode = True
+        from_attributes = True
