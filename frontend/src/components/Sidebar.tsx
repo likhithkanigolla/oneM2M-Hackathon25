@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Building2,
+  Bot,
   Settings,
   Brain,
   TrendingUp,
@@ -16,6 +17,7 @@ import { Button } from "@/components/ui/button";
 const navigation = [
   { name: "Dashboard", href: "/", icon: LayoutDashboard, roles: ["admin", "operator"] },
   { name: "Rooms", href: "/rooms", icon: Building2, roles: ["admin", "operator"] },
+  { name: "Agents", href: "/agents", icon: Bot, roles: ["admin", "operator"] },
   { name: "SLO Config", href: "/slo", icon: Settings, roles: ["admin", "operator"] },
   { name: "LLM Insights", href: "/insights", icon: Brain, roles: ["admin", "operator"] },
   { name: "Analytics", href: "/analytics", icon: TrendingUp, roles: ["admin", "operator"] },

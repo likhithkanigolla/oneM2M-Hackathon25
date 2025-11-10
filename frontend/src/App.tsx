@@ -9,6 +9,7 @@ import { useAuth } from "./store/useAuth";
 import Index from "./pages/Index";
 import Rooms from "./pages/Rooms";
 import RoomDetails from "./pages/RoomDetails";
+import Agents from "./pages/Agents";
 import SLOConfig from "./pages/SLOConfig";
 import LLMInsights from "./pages/LLMInsights";
 import Analytics from "./pages/Analytics";
@@ -38,6 +39,11 @@ const AppRoutes = () => {
         <Route path="/room/:id" element={
           <ProtectedRoute>
             <RoomDetails />
+          </ProtectedRoute>
+        } />
+        <Route path="/agents" element={
+          <ProtectedRoute>
+            <Agents />
           </ProtectedRoute>
         } />
         <Route path="/slo" element={

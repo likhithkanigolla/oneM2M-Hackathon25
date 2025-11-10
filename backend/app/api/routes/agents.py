@@ -4,6 +4,8 @@ from typing import List
 from app.database import get_db
 from app.models.agent import Agent
 from app.schemas.agent import AgentBase, AgentCreate, AgentUpdate
+from app.auth import get_current_user, require_admin
+from app.models.user import User
 
 router = APIRouter()
 
@@ -21,8 +23,8 @@ async def get_agent(agent_id: str, db: Session = Depends(get_db)):
     return agent
 
 @router.post("/", response_model=AgentBase)
-async def create_agent(agent: AgentCreate, db: Session = Depends(get_db)):
-    """Create new AI agent"""
+async def create_agent(agent: AgentCreate, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    """Create new AI agent (admin only)"""
     # Check if agent already exists
     existing = db.query(Agent).filter(Agent.id == agent.id).first()
     if existing:
@@ -35,8 +37,8 @@ async def create_agent(agent: AgentCreate, db: Session = Depends(get_db)):
     return db_agent
 
 @router.put("/{agent_id}", response_model=AgentBase)
-async def update_agent(agent_id: str, agent: AgentUpdate, db: Session = Depends(get_db)):
-    """Update AI agent"""
+async def update_agent(agent_id: str, agent: AgentUpdate, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    """Update AI agent (admin only)"""
     db_agent = db.query(Agent).filter(Agent.id == agent_id).first()
     if not db_agent:
         raise HTTPException(status_code=404, detail="Agent not found")
@@ -49,8 +51,8 @@ async def update_agent(agent_id: str, agent: AgentUpdate, db: Session = Depends(
     return db_agent
 
 @router.delete("/{agent_id}")
-async def delete_agent(agent_id: str, db: Session = Depends(get_db)):
-    """Delete AI agent"""
+async def delete_agent(agent_id: str, db: Session = Depends(get_db), current_user: User = Depends(require_admin)):
+    """Delete AI agent (admin only)"""
     db_agent = db.query(Agent).filter(Agent.id == agent_id).first()
     if not db_agent:
         raise HTTPException(status_code=404, detail="Agent not found")
@@ -60,8 +62,8 @@ async def delete_agent(agent_id: str, db: Session = Depends(get_db)):
     return {"message": "Agent deleted successfully"}
 
 @router.patch("/{agent_id}/toggle")
-async def toggle_agent(agent_id: str, db: Session = Depends(get_db)):
-    """Toggle agent active status"""
+async def toggle_agent(agent_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    """Toggle agent active status (authenticated users)"""
     db_agent = db.query(Agent).filter(Agent.id == agent_id).first()
     if not db_agent:
         raise HTTPException(status_code=404, detail="Agent not found")
