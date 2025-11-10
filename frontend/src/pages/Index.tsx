@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { RoomCard } from "@/components/RoomCard";
 import { GSIIndicator } from "@/components/GSIIndicator";
 import { AgentCard } from "@/components/AgentCard";
@@ -10,8 +11,13 @@ import { Brain } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
-  const { rooms, selectRoom } = useRooms();
-  const { agents, toggleAgent } = useAgents();
+  const { rooms, selectRoom, fetchRooms } = useRooms();
+  const { agents, toggleAgent, fetchAgents } = useAgents();
+
+  useEffect(() => {
+    fetchRooms();
+    fetchAgents();
+  }, [fetchRooms, fetchAgents]);
 
   const handleRoomClick = (room: any) => {
     selectRoom(room);

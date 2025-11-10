@@ -6,7 +6,8 @@ import { useScenarios } from "@/store/useScenarios";
 import { Badge } from "./ui/badge";
 
 export const Layout = () => {
-  const { activeScenarios } = useScenarios();
+  const { scenarios } = useScenarios();
+  const activeScenarios = scenarios?.filter(scenario => scenario.active) || [];
 
   return (
     <div className="flex h-screen w-full bg-gradient-to-br from-background via-background to-background/90">

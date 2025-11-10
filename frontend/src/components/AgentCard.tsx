@@ -33,7 +33,7 @@ export const AgentCard = ({ agent, onToggle }: AgentCardProps) => {
             RAG Sources
           </p>
           <div className="flex flex-wrap gap-1">
-            {agent.ragSources.map((source) => (
+            {(agent.rag_sources || []).map((source) => (
               <Badge key={source} variant="secondary" className="text-xs">
                 {source}
               </Badge>

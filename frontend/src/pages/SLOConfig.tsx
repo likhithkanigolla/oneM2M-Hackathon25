@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,70 +9,45 @@ import { Slider } from "@/components/ui/slider";
 import { Settings, Plus, Trash2, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-
-interface SLO {
-  id: string;
-  name: string;
-  description: string;
-  weight: number;
-  active: boolean;
-}
+import { useSLOs } from "@/store/useSLOs";
 
 export default function SLOConfig() {
-  const [slos, setSlos] = useState<SLO[]>([
-    {
-      id: "1",
-      name: "Comfort",
-      description: "Maintain optimal temperature and air quality for occupant satisfaction",
-      weight: 0.4,
-      active: true,
-    },
-    {
-      id: "2",
-      name: "Energy Efficiency",
-      description: "Minimize power consumption while meeting operational requirements",
-      weight: 0.3,
-      active: true,
-    },
-    {
-      id: "3",
-      name: "Reliability",
-      description: "Ensure consistent device operation and system uptime",
-      weight: 0.3,
-      active: true,
-    },
-  ]);
-
-  const [editingSLO, setEditingSLO] = useState<SLO | null>(null);
+  const { slos, loading, fetchSLOs, createSLO, updateSLO, deleteSLO } = useSLOs();
+  const [editingSLO, setEditingSLO] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const handleWeightChange = (id: string, newWeight: number) => {
-    setSlos((prev) =>
-      prev.map((slo) => (slo.id === id ? { ...slo, weight: newWeight } : slo))
-    );
+  useEffect(() => {
+    fetchSLOs();
+  }, [fetchSLOs]);
+
+  const handleWeightChange = async (id: number, newWeight: number) => {
+    await updateSLO(id, { weight: newWeight });
     toast.success("Weight updated", {
       description: "SLO weight has been adjusted",
     });
   };
 
-  const handleToggle = (id: string) => {
-    setSlos((prev) =>
-      prev.map((slo) => (slo.id === id ? { ...slo, active: !slo.active } : slo))
-    );
+  const handleToggle = async (id: number) => {
+    const slo = slos.find(s => s.id === id);
+    if (slo) {
+      await updateSLO(id, { active: !slo.active });
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setSlos((prev) => prev.filter((slo) => slo.id !== id));
+  const handleDelete = async (id: number) => {
+    await deleteSLO(id);
     toast.success("SLO deleted");
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editingSLO) {
       if (editingSLO.id === "new") {
-        setSlos((prev) => [...prev, { ...editingSLO, id: Date.now().toString() }]);
+        const { id, ...sloData } = editingSLO;
+        await createSLO(sloData);
         toast.success("New SLO added");
       } else {
-        setSlos((prev) => prev.map((slo) => (slo.id === editingSLO.id ? editingSLO : slo)));
+        const { id, ...sloData } = editingSLO;
+        await updateSLO(editingSLO.id, sloData);
         toast.success("SLO updated");
       }
       setEditingSLO(null);

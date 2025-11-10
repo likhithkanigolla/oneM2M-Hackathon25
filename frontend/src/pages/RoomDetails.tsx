@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import { useRooms } from "@/store/useRooms";
 import { useAgents } from "@/store/useAgents";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,8 +14,13 @@ import { cn } from "@/lib/utils";
 export default function RoomDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { rooms, updateRoomDevice } = useRooms();
-  const { agents } = useAgents();
+  const { rooms, updateRoomDevice, fetchRooms } = useRooms();
+  const { agents, fetchAgents } = useAgents();
+
+  useEffect(() => {
+    fetchRooms();
+    fetchAgents();
+  }, [fetchRooms, fetchAgents]);
 
   const room = rooms.find((r) => r.id === Number(id));
 
