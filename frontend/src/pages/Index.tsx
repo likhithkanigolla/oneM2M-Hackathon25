@@ -7,17 +7,20 @@ import { ScenarioPanel } from "@/components/ScenarioPanel";
 import { RoomMap } from "@/components/RoomMap";
 import { useRooms } from "@/store/useRooms";
 import { useAgents } from "@/store/useAgents";
+import { useScenarios } from "@/store/useScenarios";
 import { Brain } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
   const { rooms, selectRoom, fetchRooms } = useRooms();
   const { agents, toggleAgent, fetchAgents } = useAgents();
+  const { fetchScenarios } = useScenarios();
 
   useEffect(() => {
     fetchRooms();
     fetchAgents();
-  }, [fetchRooms, fetchAgents]);
+    fetchScenarios();
+  }, [fetchRooms, fetchAgents, fetchScenarios]);
 
   const handleRoomClick = (room: any) => {
     selectRoom(room);

@@ -8,6 +8,9 @@ export interface Scenario {
   description?: string;
   active: boolean;
   config?: any;
+  priority?: string;
+  trigger?: string;
+  impact?: string;
 }
 
 interface ScenarioState {

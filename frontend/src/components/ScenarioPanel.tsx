@@ -32,7 +32,8 @@ export const ScenarioPanel = () => {
       </CardHeader>
       <CardContent className="space-y-2">
         {scenarios.map((scenario) => {
-          const Icon = priorityIcons[scenario.priority];
+          const priority = scenario.priority || 'Medium';
+          const Icon = priorityIcons[priority] || Clock;
           
           return (
             <div
@@ -46,7 +47,7 @@ export const ScenarioPanel = () => {
                 <Icon
                   className={cn(
                     "h-4 w-4",
-                    scenario.active ? priorityColors[scenario.priority] : "text-muted-foreground"
+                    scenario.active ? priorityColors[priority] || "text-primary" : "text-muted-foreground"
                   )}
                 />
                 <div className="flex-1">
@@ -56,16 +57,20 @@ export const ScenarioPanel = () => {
                       variant="outline"
                       className={cn(
                         "text-xs",
-                        scenario.active ? priorityColors[scenario.priority] : "text-muted-foreground"
+                        scenario.active ? priorityColors[priority] || "text-primary" : "text-muted-foreground"
                       )}
                     >
-                      {scenario.priority}
+                      {priority}
                     </Badge>
                   </div>
-                  <p className="text-xs text-muted-foreground">{scenario.trigger}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {scenario.trigger || scenario.description || "No trigger info"}
+                  </p>
                 </div>
                 <div className="text-right mr-2">
-                  <p className="text-xs font-medium text-accent">{scenario.impact}</p>
+                  <p className="text-xs font-medium text-accent">
+                    {scenario.impact || "Impact varies"}
+                  </p>
                 </div>
               </div>
               <Switch checked={scenario.active} onCheckedChange={() => toggleScenario(scenario.id)} />

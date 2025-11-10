@@ -1,42 +1,19 @@
+import { useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users as UsersIcon, Shield, User, Building2 } from "lucide-react";
+import { useUsers } from "@/store/useUsers";
+import { useRooms } from "@/store/useRooms";
 
 export default function Users() {
-  const currentUser = {
-    name: "Admin User",
-    role: "admin",
-    email: "admin@smartroom.ai",
-    assignedRooms: [1, 2, 3, 4],
-  };
+  const { users, currentUser, fetchUsers, getCurrentUser } = useUsers();
+  const { rooms } = useRooms();
 
-  const users = [
-    {
-      id: 1,
-      name: "Admin User",
-      role: "admin",
-      email: "admin@smartroom.ai",
-      assignedRooms: [1, 2, 3, 4],
-      lastActive: "Just now",
-    },
-    {
-      id: 2,
-      name: "Operator A",
-      role: "operator",
-      email: "operator.a@smartroom.ai",
-      assignedRooms: [1, 2],
-      lastActive: "5 mins ago",
-    },
-    {
-      id: 3,
-      name: "Operator B",
-      role: "operator",
-      email: "operator.b@smartroom.ai",
-      assignedRooms: [3, 4],
-      lastActive: "1 hour ago",
-    },
-  ];
+  useEffect(() => {
+    fetchUsers();
+    getCurrentUser();
+  }, [fetchUsers, getCurrentUser]);
 
   return (
     <div className="container mx-auto px-6 py-6 space-y-6 animate-fade-in">
@@ -62,20 +39,20 @@ export default function Users() {
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-lg font-semibold">{currentUser.name}</p>
-              <p className="text-sm text-muted-foreground">{currentUser.email}</p>
+              <p className="text-lg font-semibold">{currentUser?.full_name || 'Unknown User'}</p>
+              <p className="text-sm text-muted-foreground">{currentUser?.email}</p>
             </div>
             <Badge variant="default" className="gap-2">
               <Shield className="h-3 w-3" />
-              {currentUser.role.toUpperCase()}
+              {(currentUser?.role || 'user').toUpperCase()}
             </Badge>
           </div>
           <div>
             <p className="text-sm text-muted-foreground mb-2">Access Level</p>
             <p className="text-sm">
-              {currentUser.role === "admin"
+              {currentUser?.role === "admin"
                 ? "Full system access - All rooms and configurations"
-                : `Limited to assigned rooms (${currentUser.assignedRooms.length} rooms)`}
+                : `Limited to assigned rooms (${currentUser?.assigned_rooms?.length || 0} rooms)`}
             </p>
           </div>
         </CardContent>
@@ -91,7 +68,7 @@ export default function Users() {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-lg">{user.name}</h3>
+                      <h3 className="font-semibold text-lg">{user.full_name}</h3>
                       <Badge
                         variant={user.role === "admin" ? "default" : "secondary"}
                         className="gap-1"
@@ -111,11 +88,11 @@ export default function Users() {
                         <span>
                           {user.role === "admin"
                             ? "All Rooms"
-                            : `${user.assignedRooms.length} Rooms`}
+                            : `${user.assigned_rooms?.length || 0} Rooms`}
                         </span>
                       </div>
                       <div className="text-muted-foreground">
-                        Last active: {user.lastActive}
+                        Status: {user.is_active ? 'Active' : 'Inactive'}
                       </div>
                     </div>
                   </div>

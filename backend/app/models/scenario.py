@@ -10,6 +10,9 @@ class Scenario(Base):
     description = Column(String, nullable=True)
     active = Column(Boolean, default=False)
     config = Column(JSON, nullable=True)
+    priority = Column(String, default="Medium")  # Low, Medium, High, Critical
+    trigger = Column(String, nullable=True)     # What triggers this scenario
+    impact = Column(String, nullable=True)      # Expected impact description
 
     def to_dict(self):
         return {
@@ -18,4 +21,7 @@ class Scenario(Base):
             "description": self.description,
             "active": self.active,
             "config": self.config,
+            "priority": self.priority,
+            "trigger": self.trigger,
+            "impact": self.impact,
         }
