@@ -10,6 +10,8 @@ class SLOBase(BaseModel):
     weight: Optional[float] = 0.1
     active: Optional[bool] = True
     config: Optional[Any] = None
+    created_by: str
+    is_system_defined: Optional[bool] = False
 
     class Config:
         from_attributes = True
@@ -22,6 +24,7 @@ class SLOCreate(BaseModel):
     weight: Optional[float] = 0.1
     active: Optional[bool] = True
     config: Optional[Any] = None
+    is_system_defined: Optional[bool] = False
 
 class SLOUpdate(BaseModel):
     name: Optional[str] = None
@@ -32,5 +35,11 @@ class SLOUpdate(BaseModel):
     active: Optional[bool] = None
     config: Optional[Any] = None
 
+    class Config:
+        from_attributes = True
+
+class SLOResponse(SLOBase):
+    id: int
+    
     class Config:
         from_attributes = True

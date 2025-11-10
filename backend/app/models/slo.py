@@ -13,6 +13,8 @@ class SLO(Base):
     weight = Column(Float, default=0.1)  # Weight for SLO importance
     active = Column(Boolean, default=True)  # Whether SLO is active
     config = Column(JSON, nullable=True)
+    created_by = Column(String, nullable=False)  # Username who created the SLO
+    is_system_defined = Column(Boolean, default=False)  # True for admin-defined SLOs
 
     def to_dict(self):
         return {
@@ -24,4 +26,6 @@ class SLO(Base):
             "weight": self.weight,
             "active": self.active,
             "config": self.config,
+            "created_by": self.created_by,
+            "is_system_defined": self.is_system_defined,
         }
