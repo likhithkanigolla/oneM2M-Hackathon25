@@ -21,6 +21,25 @@ async def get_room(room_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Room not found")
     return room
 
+
+@router.patch("/{room_id}/devices/{device_name}")
+async def update_device(
+    room_id: int,
+    device_name: str,
+    status: str,
+    db: Session = Depends(get_db),
+):
+    """Update device status (manual override)"""
+    service = RoomService(db)
+    updated_room = service.update_device_status(room_id, device_name, status)
+    if not updated_room:
+        raise HTTPException(status_code=404, detail="Room or device not found")
+
+    # Broadcast update via WebSocket (send dict)
+    await manager.broadcast_room_update(updated_room.to_dict())
+
+    return updated_room
+
 @router.websocket("/ws/{room_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id: int):
     await manager.connect(websocket)

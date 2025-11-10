@@ -13,7 +13,7 @@ class Device(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     type = Column(String, nullable=True)
-    status = Column(Enum(DeviceStatus), default=DeviceStatus.OFF)
+    status = Column(Enum(DeviceStatus, name="device_status"), default=DeviceStatus.OFF)
     room_id = Column(Integer, ForeignKey("rooms.id"))
     services = Column(JSON, nullable=True)
 

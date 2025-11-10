@@ -1,5 +1,10 @@
 import { create } from 'zustand';
 
+// Debug: log environment variable
+console.log('VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+console.log('Using API_BASE:', API_BASE);
+
 export interface Device {
   name: string;
   type: string;
@@ -30,182 +35,61 @@ interface RoomState {
   selectedRoom: Room | null;
   setRooms: (rooms: Room[]) => void;
   selectRoom: (room: Room | null) => void;
-  updateRoomDevice: (roomId: number, deviceName: string, status: 'ON' | 'OFF') => void;
+  updateRoomDevice: (roomId: number, deviceName: string, status: 'ON' | 'OFF') => Promise<void>;
+  fetchRooms: () => Promise<void>;
 }
 
-export const useRooms = create<RoomState>((set) => ({
-  rooms: [
-    {
-      id: 1,
-      name: "Conference Room A",
-      gsi: 0.84,
-      aq: 85,
-      temp: 24,
-      occupancy: 5,
-      position: { x: 100, y: 100 },
-      devices: [
-        {
-          name: "AC",
-          type: "HVAC",
-          status: "ON",
-          services: [
-            { name: "TempFromWeatherStation", inputSource: "Weather Node", active: true, controlledBy: "Claude" }
-          ]
-        },
-        {
-          name: "Light",
-          type: "Lighting",
-          status: "ON",
-          services: [
-            { name: "CameraLighting", inputSource: "Camera Sensor", active: true, controlledBy: "Gemini" }
-          ]
-        },
-        {
-          name: "Fan",
-          type: "AirFlow",
-          status: "ON",
-          services: [
-            { name: "CirculateAir", inputSource: "Occupancy Sensor", active: true, controlledBy: "Gemini" }
-          ]
-        },
-        {
-          name: "Camera",
-          type: "Security",
-          status: "ON",
-          services: [
-            { name: "Monitoring", inputSource: "Motion Sensor", active: true, controlledBy: "GPT" }
-          ]
-        }
-      ]
-    },
-    {
-      id: 2,
-      name: "Conference Room B",
-      gsi: 0.76,
-      aq: 78,
-      temp: 26,
-      occupancy: 3,
-      position: { x: 350, y: 100 },
-      devices: [
-        {
-          name: "AC",
-          type: "HVAC",
-          status: "ON",
-          services: [
-            { name: "TempControl", inputSource: "Temp Sensor", active: true, controlledBy: "Claude" }
-          ]
-        },
-        {
-          name: "Light",
-          type: "Lighting",
-          status: "ON",
-          services: [
-            { name: "AutoLight", inputSource: "Light Sensor", active: true, controlledBy: "Gemini" }
-          ]
-        },
-        {
-          name: "Fan",
-          type: "AirFlow",
-          status: "OFF",
-          services: [
-            { name: "CirculateAir", inputSource: "Occupancy Sensor", active: false }
-          ]
-        }
-      ]
-    },
-    {
-      id: 3,
-      name: "Office Space",
-      gsi: 0.92,
-      aq: 92,
-      temp: 23,
-      occupancy: 8,
-      position: { x: 100, y: 300 },
-      devices: [
-        {
-          name: "AC",
-          type: "HVAC",
-          status: "ON",
-          services: [
-            { name: "SmartTemp", inputSource: "Multi Sensor", active: true, controlledBy: "Claude" }
-          ]
-        },
-        {
-          name: "Light",
-          type: "Lighting",
-          status: "ON",
-          services: [
-            { name: "DynamicLighting", inputSource: "Occupancy + Light", active: true, controlledBy: "GPT" }
-          ]
-        },
-        {
-          name: "Fan",
-          type: "AirFlow",
-          status: "ON",
-          services: [
-            { name: "AirCirculation", inputSource: "AQ Sensor", active: true, controlledBy: "Gemini" }
-          ]
-        },
-        {
-          name: "Camera",
-          type: "Security",
-          status: "ON",
-          services: [
-            { name: "Monitoring", inputSource: "Motion Sensor", active: true, controlledBy: "GPT" }
-          ]
-        }
-      ]
-    },
-    {
-      id: 4,
-      name: "Lab Room",
-      gsi: 0.68,
-      aq: 72,
-      temp: 27,
-      occupancy: 2,
-      position: { x: 350, y: 300 },
-      devices: [
-        {
-          name: "AC",
-          type: "HVAC",
-          status: "ON",
-          services: [
-            { name: "PrecisionTemp", inputSource: "Lab Sensor", active: true, controlledBy: "Claude" }
-          ]
-        },
-        {
-          name: "Light",
-          type: "Lighting",
-          status: "ON",
-          services: [
-            { name: "TaskLighting", inputSource: "Manual", active: true }
-          ]
-        },
-        {
-          name: "Fan",
-          type: "AirFlow",
-          status: "ON",
-          services: [
-            { name: "ExhaustControl", inputSource: "AQ Sensor", active: true, controlledBy: "Gemini" }
-          ]
-        }
-      ]
-    }
-  ],
+export const useRooms = create<RoomState>((set, get) => ({
+  rooms: [],
   selectedRoom: null,
   setRooms: (rooms) => set({ rooms }),
   selectRoom: (room) => set({ selectedRoom: room }),
-  updateRoomDevice: (roomId, deviceName, status) =>
-    set((state) => ({
-      rooms: state.rooms.map((room) =>
-        room.id === roomId
-          ? {
-              ...room,
-              devices: room.devices.map((device) =>
-                device.name === deviceName ? { ...device, status } : device
-              ),
-            }
-          : room
-      ),
-    })),
+  updateRoomDevice: async (roomId, deviceName, status) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/rooms/${roomId}/devices/${encodeURIComponent(deviceName)}?status=${encodeURIComponent(status)}`, {
+        method: 'PATCH',
+      });
+      if (!res.ok) throw new Error('Failed to update device');
+      const updatedRoom = await res.json();
+      set((state) => ({
+        rooms: state.rooms.map((r) => (r.id === updatedRoom.id ? updatedRoom : r)),
+      }));
+    } catch (err) {
+      console.error('updateRoomDevice error', err);
+    }
+  },
+  fetchRooms: async () => {
+    try {
+      console.log('Fetching rooms from:', `${API_BASE}/api/rooms/`);
+      const res = await fetch(`${API_BASE}/api/rooms/`);
+      console.log('Response status:', res.status);
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+      const rooms = await res.json();
+      console.log('Fetched rooms:', rooms.length);
+      set({ rooms });
+    } catch (err) {
+      console.error('fetchRooms error', err);
+    }
+  },
 }));
+
+// Simple initializer: fetch rooms on module load (optional)
+async function initRooms() {
+  try {
+    console.log('Initializing rooms from:', `${API_BASE}/api/rooms/`);
+    const res = await fetch(`${API_BASE}/api/rooms/`);
+    if (!res.ok) {
+      console.warn('Failed to fetch initial rooms:', res.status, res.statusText);
+      return;
+    }
+    const rooms = await res.json();
+    console.log('Initial rooms loaded:', rooms.length);
+    const setState = (useRooms as any).getState().setRooms;
+    setState(rooms);
+  } catch (e) {
+    console.warn('Could not fetch initial rooms from backend', e);
+  }
+}
+
+// Don't auto-init on module load, let components handle it
+// initRooms();

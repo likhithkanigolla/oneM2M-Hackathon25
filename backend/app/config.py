@@ -1,7 +1,9 @@
-from pydantic import BaseSettings
+from pydantic_settings import BaseSettings
+
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "sqlite:///./smartroom.db"
+    # Use Postgres by default for development. Override via .env.
+    DATABASE_URL: str = "postgresql://postgres:postgres@localhost:5432/smartroom"
 
     # AI Agent API Keys (set in .env or environment)
     OPENAI_API_KEY: str | None = None
@@ -12,5 +14,6 @@ class Settings(BaseSettings):
 
     class Config:
         env_file = ".env"
+
 
 settings = Settings()

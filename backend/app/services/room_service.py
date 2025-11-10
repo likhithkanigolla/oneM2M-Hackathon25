@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models.room import Room
 from app.models.device import Device
+from app.models.device import DeviceStatus
 
 class RoomService:
     def __init__(self, db: Session):
@@ -19,7 +20,12 @@ class RoomService:
         device = next((d for d in room.devices if d.name == device_name), None)
         if not device:
             return None
-        device.status = status
+        # Accept either string or enum
+        try:
+            device.status = DeviceStatus(status)
+        except Exception:
+            # fallback: assign raw string (SQLAlchemy may coerce)
+            device.status = status
         self.db.add(device)
         self.db.commit()
         self.db.refresh(room)
