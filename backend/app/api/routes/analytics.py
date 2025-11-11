@@ -98,11 +98,35 @@ async def get_agent_decisions(room_id: int, db: Session = Depends(get_db)):
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
     
+    # Try to get real decision history from decision engine
+    try:
+        from ...services.decision_engine import MultiAgentDecisionEngine
+        engine = MultiAgentDecisionEngine(db)
+        decision_history = engine.get_decision_history(room_id, limit=6)
+        
+        if decision_history:
+            # Convert real decision logs to AgentDecision format
+            decisions = []
+            for log in decision_history:
+                decisions.append(AgentDecision(
+                    time=log.get('timestamp', datetime.now().isoformat())[:5] if isinstance(log.get('timestamp'), str) else datetime.now().strftime("%H:%M"),
+                    agent=log.get('agent_id', 'Unknown Agent'),
+                    decision=log.get('decision', 'System Decision'),
+                    confidence=log.get('reliability_score', 0.8) or 0.8,
+                    reasoning=log.get('reasoning', 'Agent decision based on current conditions')
+                ))
+            
+            return decisions[:6]  # Return up to 6 recent decisions
+            
+    except Exception as e:
+        print(f"Error getting real decision history: {e}")
+        # Fall back to mock data
+    
+    # Fallback: Generate realistic mock agent decisions
     agents = db.query(Agent).all()
     if not agents:
         return []
     
-    # Generate realistic agent decisions
     decisions = []
     now = datetime.now()
     

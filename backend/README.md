@@ -1,32 +1,63 @@
-# Smart Room Digital Twin - Backend
+# Smart Building Management System Backend
 
-This FastAPI backend provides a complete API for the Smart Room Digital Twin system with PostgreSQL database integration.
+## 🤖 AI-Powered Digital Twin
 
-## Features
-- **Complete REST API** for rooms, devices, agents, scenarios, SLOs, users, and analytics
-- **PostgreSQL database** with full schema and relationships
-- **Seed data** with realistic smart room configurations
-- **Database migrations** for schema updates
-- **AI agent management** with configurable weights and RAG sources
-- **Scenario management** with priority levels and impact tracking
-- **User management** with role-based access control
-- **Analytics and decision logging** for AI decision tracking
+This backend powers an **intelligent building management system** with LLM agents that make real-time decisions based on SLOs, sensor data, and occupancy patterns. The system uses **Google Gemini API** for free AI-powered decision making.
 
-Quick start (macOS / zsh):
+## ✨ Key Features
 
+### 🧠 **Multi-Agent AI Decision Engine**
+- **6 specialized LLM agents**: Security, Comfort, Energy, Emergency, Environmental, Occupancy
+- **Conflict resolution**: Priority weighting, majority vote, manual escalation
+- **Real-time decisions** based on sensor data and SLO requirements
+- **Audit trail** with AI reasoning explanations
+
+### 🎯 **SLO-Driven Management**  
+- **Global SLOs**: Admin-defined building-wide policies (e.g., "minimum lighting for surveillance")
+- **Room SLOs**: Operator-specific requirements (e.g., "meeting rooms at 22°C") 
+- **Dynamic balancing**: AI agents optimize competing priorities automatically
+
+### 🌡️ **IoT Integration**
+- Real-time sensor data processing (temperature, humidity, CO2, occupancy)
+- Mock data generation for testing and development
+- Environmental scoring and air quality indexing
+
+### 👥 **Role-Based Access Control**
+- **Admins**: Global SLO management, system oversight
+- **Operators**: Room-specific SLO configuration, device control
+- **Audit logs**: Complete decision history with AI explanations
+
+## 🚀 Quick Start with LLM Integration
+
+### 1. **Get Free Google AI API Key**
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+# Visit Google AI Studio (free tier available)
+open https://aistudio.google.com/app/apikey
 ```
 
-Next steps:
-- Implement decision engine and agent integrations (LangChain, OpenAI/Anthropic/Gemini)
-- Add RAG ingestion and vector DB
-- Add MQTT / IoT integration
-- Add RBAC (users) and tests
+### 2. **Automated Setup**
+```bash
+# Run the setup script
+./setup_llm.sh
+```
+
+### 3. **Manual Setup** (Alternative)
+```bash
+# Install dependencies  
+pip install -r requirements.txt
+pip install google-generativeai httpx
+
+# Configure environment
+cp .env.example .env
+# Add GOOGLE_API_KEY=your_key_here to .env
+
+# Setup database
+python migrate_db.py
+python seed_db.py
+
+# Start server
+uvicorn app.main:app --reload
+```
 
 Postgres setup and seeding
 1. Install Postgres (macOS, Homebrew):

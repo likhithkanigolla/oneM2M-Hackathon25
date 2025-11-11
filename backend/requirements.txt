@@ -6,3 +6,5 @@ pydantic-settings
 python-dotenv
 psycopg2-binary
 alembic
+google-generativeai
+httpx

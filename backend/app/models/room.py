@@ -14,6 +14,7 @@ class Room(Base):
     position = Column(JSON, nullable=True)
 
     devices = relationship("Device", back_populates="room", cascade="all, delete-orphan")
+    sensors = relationship("Sensor", back_populates="room", cascade="all, delete-orphan")
     decision_logs = relationship("DecisionLog", back_populates="room")
 
     def to_dict(self):
