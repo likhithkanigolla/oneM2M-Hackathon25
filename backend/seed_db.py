@@ -15,6 +15,12 @@ from app.models.scenario import Scenario
 from app.models.user import User
 
 def create_sample(session):
+    # Check if data already exists
+    existing_rooms = session.query(Room).count()
+    if existing_rooms > 0:
+        print(f"Database already has {existing_rooms} rooms. Skipping seed.")
+        return
+    
     # create rooms and devices similar to frontend defaults
     r1 = Room(name="Conference Room A", gsi=0.84, aq=85, temp=24, occupancy=5, position={"x":100,"y":100})
     r2 = Room(name="Conference Room B", gsi=0.76, aq=78, temp=26, occupancy=3, position={"x":350,"y":100})
