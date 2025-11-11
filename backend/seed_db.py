@@ -15,11 +15,32 @@ from app.models.scenario import Scenario
 from app.models.user import User
 
 def create_sample(session):
-    # Check if data already exists
+    # Check if data already exists for all entity types
     existing_rooms = session.query(Room).count()
-    if existing_rooms > 0:
-        print(f"Database already has {existing_rooms} rooms. Skipping seed.")
+    existing_devices = session.query(Device).count()
+    existing_agents = session.query(Agent).count()
+    existing_slos = session.query(SLO).count()
+    existing_scenarios = session.query(Scenario).count()
+    existing_users = session.query(User).count()
+    if all([
+        existing_rooms > 0,
+        existing_devices > 0,
+        existing_agents > 0,
+        existing_slos > 0,
+        existing_scenarios > 0,
+        existing_users > 0
+    ]):
+        print("Database already seeded for all entity types. Skipping seed.")
         return
+    elif any([
+        existing_rooms > 0,
+        existing_devices > 0,
+        existing_agents > 0,
+        existing_slos > 0,
+        existing_scenarios > 0,
+        existing_users > 0
+    ]):
+        print("Warning: Partial data detected in one or more tables. Proceeding to seed missing entities.")
     
     # create rooms and devices similar to frontend defaults
     r1 = Room(name="Conference Room A", gsi=0.84, aq=85, temp=24, occupancy=5, position={"x":100,"y":100})
