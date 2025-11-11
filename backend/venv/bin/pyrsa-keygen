@@ -1,8 +1,0 @@
-#!/home/perireddy/SCRC/onem2m_hackathon-2025/oneM2M-Hackathon25/backend/venv/bin/python3
-# -*- coding: utf-8 -*-
-import re
-import sys
-from rsa.cli import keygen
-if __name__ == '__main__':
-    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
-    sys.exit(keygen())
