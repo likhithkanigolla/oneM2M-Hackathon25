@@ -77,9 +77,9 @@ export default function AuthPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="space-y-4">
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Login</TabsTrigger>
-                <TabsTrigger value="register">Register</TabsTrigger>
+              <TabsList className="flex w-full justify-center">
+                <TabsTrigger value="login" className="px-16 text-lg font-semibold">Login</TabsTrigger>
+                {/* <TabsTrigger value="register">Register</TabsTrigger> */}
               </TabsList>
               
               {error && (
@@ -129,7 +129,7 @@ export default function AuthPage() {
                 </form>
               </TabsContent>
               
-              <TabsContent value="register">
+              {/* <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4">
                   <div>
                     <Label htmlFor="register-username">Username</Label>
@@ -202,7 +202,7 @@ export default function AuthPage() {
                     )}
                   </Button>
                 </form>
-              </TabsContent>
+              </TabsContent> */}
             </Tabs>
           </CardContent>
         </Card>
