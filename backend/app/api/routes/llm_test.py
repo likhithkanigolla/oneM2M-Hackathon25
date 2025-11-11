@@ -8,10 +8,10 @@ and agent decision-making capabilities.
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
 from typing import Dict, Any, Optional
-from ..database import get_db
-from ..models.room import Room
-from ..services.decision_engine import MultiAgentDecisionEngine
-from ..agents.gemini_client import is_gemini_available, get_gemini_client
+from ...database import get_db
+from ...models.room import Room
+from ...services.decision_engine import MultiAgentDecisionEngine
+from ...agents.gemini_client import is_gemini_available, get_gemini_client
 import os
 
 router = APIRouter(prefix="/api/llm", tags=["LLM Testing"])

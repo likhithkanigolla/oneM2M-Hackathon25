@@ -11,6 +11,7 @@ import asyncio
 from typing import Dict, List, Any, Optional
 import google.generativeai as genai
 from datetime import datetime
+from ..config import settings
 
 class GeminiLLMClient:
     """
@@ -18,15 +19,15 @@ class GeminiLLMClient:
     """
     
     def __init__(self):
-        self.api_key = os.getenv('GOOGLE_API_KEY')
+        self.api_key = settings.GOOGLE_API_KEY
         if not self.api_key:
-            raise ValueError("GOOGLE_API_KEY environment variable not set")
+            raise ValueError("GOOGLE_API_KEY not configured in settings")
         
         # Configure the API
         genai.configure(api_key=self.api_key)
         
-        # Use Gemini Pro model for decision making
-        self.model = genai.GenerativeModel('gemini-pro')
+        # Use Gemini 2.5 Flash model for decision making (fast and efficient)
+        self.model = genai.GenerativeModel('models/gemini-2.5-flash')
         
     async def generate_decision(self, prompt: str, context: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -164,8 +165,18 @@ Do not include any text before or after the JSON response.
     def _parse_response(self, response_text: str) -> Dict[str, Any]:
         """Parse and validate Gemini response"""
         try:
-            # Clean the response text
+            # Clean the response text - handle markdown code blocks
             cleaned_response = response_text.strip()
+            
+            # Remove markdown code block markers if present
+            if cleaned_response.startswith('```json'):
+                cleaned_response = cleaned_response[7:]  # Remove ```json
+            if cleaned_response.startswith('```'):
+                cleaned_response = cleaned_response[3:]   # Remove ```
+            if cleaned_response.endswith('```'):
+                cleaned_response = cleaned_response[:-3]  # Remove trailing ```
+            
+            cleaned_response = cleaned_response.strip()
             
             # Try to parse as JSON
             decision = json.loads(cleaned_response)
@@ -249,4 +260,4 @@ def get_gemini_client() -> GeminiLLMClient:
 
 def is_gemini_available() -> bool:
     """Check if Gemini API is available"""
-    return os.getenv('GOOGLE_API_KEY') is not None
+    return settings.GOOGLE_API_KEY is not None

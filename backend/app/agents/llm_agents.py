@@ -144,240 +144,6 @@ Analyze the current context and provide specific device actions to maintain secu
         return decision
 
 
-class ComfortAgent(BaseAgent):
-    """Agent focused on occupant comfort optimization"""
-    
-    def __init__(self, agent_id: str = "comfort_agent"):
-        super().__init__(agent_id)
-        self.config = AgentRegistry.get_agent_config(AgentType.COMFORT)
-        self.agent_type = AgentType.COMFORT
-        self.gemini_client = get_gemini_client()
-    
-    async def make_decision(self, context: dict) -> dict:
-        """Make comfort-focused decisions using Google Gemini LLM"""
-        if self.gemini_client and is_gemini_available():
-            return await self._make_llm_decision(context)
-        else:
-            return await self._make_fallback_decision(context)
-    
-    async def _make_llm_decision(self, context: dict) -> dict:
-        """Generate decision using Gemini LLM"""
-        try:
-            prompt = self._load_agent_prompt()
-            llm_response = await self.gemini_client.generate_decision(prompt, context)
-            
-            decision = {
-                "agent_id": self.agent_id,
-                "agent_type": self.agent_type.value,
-                "priority": self.config.priority_weight,
-                "timestamp": datetime.now().isoformat(),
-                "decisions": llm_response.get("decisions", []),
-                "reasoning": llm_response.get("reasoning", "Comfort agent decision"),
-                "scores": llm_response.get("scores", {"comfort": 1.0, "energy": 0.3, "reliability": 0.7, "security": 0.2}),
-                "confidence": llm_response.get("confidence", 0.8)
-            }
-            
-            return decision
-            
-        except Exception as e:
-            print(f"Error in ComfortAgent LLM decision: {e}")
-            return await self._make_fallback_decision(context)
-    
-    def _load_agent_prompt(self) -> str:
-        """Load agent-specific prompt template"""
-        prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "comfort_agent_prompt.txt")
-        try:
-            with open(prompt_path, 'r') as f:
-                return f.read()
-        except FileNotFoundError:
-            return self._get_default_prompt()
-    
-    def _get_default_prompt(self) -> str:
-        """Default comfort agent prompt"""
-        return """
-You are a Comfort Agent responsible for optimizing occupant comfort in smart buildings.
-
-MISSION: Maximize occupant comfort through optimal environmental control.
-
-KEY RESPONSIBILITIES:
-- Maintain ideal temperature and humidity levels
-- Optimize lighting for occupant activities
-- Ensure adequate air quality and circulation
-- Respond to occupancy changes and activity patterns
-
-DECISION PRINCIPLES:
-1. Prioritize human comfort and wellbeing
-2. Adapt quickly to occupancy changes
-3. Balance temperature, lighting, and air quality
-4. Consider activity-specific requirements
-
-Analyze the current context and provide specific device actions to optimize comfort.
-"""
-    
-    async def _make_fallback_decision(self, context: dict) -> dict:
-        """Fallback rule-based decision"""
-        sensor_data = context.get('sensor_data', {})
-        devices = context.get('devices', [])
-        
-        decisions = []
-        reasoning_parts = []
-        
-        # Temperature control
-        temperature = sensor_data.get('temperature', 22)
-        occupancy = sensor_data.get('occupancy', 0)
-        
-        hvac_devices = [d for d in devices if d.get('type') == 'HVAC']
-        
-        if occupancy > 0 and hvac_devices:
-            if temperature > 26:
-                decisions.append({
-                    "device_id": hvac_devices[0].get('id'),
-                    "action": "set_temperature",
-                    "parameters": {"temperature": 24, "mode": "cool"},
-                    "priority": 0.8
-                })
-                reasoning_parts.append("Cooling required for occupant comfort")
-            elif temperature < 20:
-                decisions.append({
-                    "device_id": hvac_devices[0].get('id'),
-                    "action": "set_temperature",
-                    "parameters": {"temperature": 22, "mode": "heat"},
-                    "priority": 0.8
-                })
-                reasoning_parts.append("Heating required for occupant comfort")
-        
-        decision = {
-            "agent_id": self.agent_id,
-            "agent_type": self.agent_type.value,
-            "priority": self.config.priority_weight,
-            "timestamp": datetime.now().isoformat(),
-            "decisions": decisions,
-            "reasoning": "; ".join(reasoning_parts) if reasoning_parts else "Comfort conditions optimal",
-            "scores": {"comfort": 1.0, "energy": 0.3, "reliability": 0.7, "security": 0.2},
-            "confidence": 0.7
-        }
-        
-        return decision
-
-
-class EnergyAgent(BaseAgent):
-    """Agent focused on energy efficiency and optimization"""
-    
-    def __init__(self, agent_id: str = "energy_agent"):
-        super().__init__(agent_id)
-        self.config = AgentRegistry.get_agent_config(AgentType.ENERGY_EFFICIENCY)
-        self.agent_type = AgentType.ENERGY_EFFICIENCY
-        self.gemini_client = get_gemini_client()
-    
-    async def make_decision(self, context: dict) -> dict:
-        """Make energy-focused decisions using Google Gemini LLM"""
-        if self.gemini_client and is_gemini_available():
-            return await self._make_llm_decision(context)
-        else:
-            return await self._make_fallback_decision(context)
-    
-    async def _make_llm_decision(self, context: dict) -> dict:
-        """Generate decision using Gemini LLM"""
-        try:
-            prompt = self._load_agent_prompt()
-            llm_response = await self.gemini_client.generate_decision(prompt, context)
-            
-            decision = {
-                "agent_id": self.agent_id,
-                "agent_type": self.agent_type.value,
-                "priority": self.config.priority_weight,
-                "timestamp": datetime.now().isoformat(),
-                "decisions": llm_response.get("decisions", []),
-                "reasoning": llm_response.get("reasoning", "Energy agent decision"),
-                "scores": llm_response.get("scores", {"comfort": 0.4, "energy": 1.0, "reliability": 0.6, "security": 0.3}),
-                "confidence": llm_response.get("confidence", 0.8)
-            }
-            
-            return decision
-            
-        except Exception as e:
-            print(f"Error in EnergyAgent LLM decision: {e}")
-            return await self._make_fallback_decision(context)
-    
-    def _load_agent_prompt(self) -> str:
-        """Load agent-specific prompt template"""
-        prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "energy_agent_prompt.txt")
-        try:
-            with open(prompt_path, 'r') as f:
-                return f.read()
-        except FileNotFoundError:
-            return self._get_default_prompt()
-    
-    def _get_default_prompt(self) -> str:
-        """Default energy agent prompt"""
-        return """
-You are an Energy Agent responsible for optimizing building energy consumption.
-
-MISSION: Minimize energy usage while maintaining essential building functions.
-
-KEY RESPONSIBILITIES:
-- Reduce unnecessary power consumption
-- Optimize HVAC efficiency based on occupancy
-- Implement smart lighting schedules
-- Balance energy savings with comfort needs
-
-DECISION PRINCIPLES:
-1. Turn off devices in unoccupied areas
-2. Use energy-efficient settings when possible
-3. Prioritize energy savings during peak hours
-4. Maintain safety and security requirements
-
-Analyze the current context and provide specific device actions to optimize energy efficiency.
-"""
-    
-    async def _make_fallback_decision(self, context: dict) -> dict:
-        """Fallback rule-based decision"""
-        sensor_data = context.get('sensor_data', {})
-        devices = context.get('devices', [])
-        
-        decisions = []
-        reasoning_parts = []
-        
-        occupancy = sensor_data.get('occupancy', 0)
-        
-        # Turn off devices in unoccupied areas
-        if occupancy == 0:
-            for device in devices:
-                if device.get('status') == 'ON' and device.get('type') in ['Lighting', 'HVAC']:
-                    # Check if device is required for security
-                    if not self._is_security_required(device, context):
-                        decisions.append({
-                            "device_id": device.get('id'),
-                            "action": "turn_off",
-                            "parameters": {},
-                            "priority": 0.7
-                        })
-                        reasoning_parts.append(f"Turning off {device.get('name')} - area unoccupied")
-        
-        decision = {
-            "agent_id": self.agent_id,
-            "agent_type": self.agent_type.value,
-            "priority": self.config.priority_weight,
-            "timestamp": datetime.now().isoformat(),
-            "decisions": decisions,
-            "reasoning": "; ".join(reasoning_parts) if reasoning_parts else "Energy usage optimized",
-            "scores": {"comfort": 0.4, "energy": 1.0, "reliability": 0.6, "security": 0.3},
-            "confidence": 0.7
-        }
-        
-        return decision
-    
-    def _is_security_required(self, device: dict, context: dict) -> bool:
-        """Check if device is required for security"""
-        slos = context.get('slos', [])
-        security_slos = [slo for slo in slos if 'security' in slo.get('name', '').lower()]
-        
-        # If there are security SLOs and this is a lighting device, it might be required
-        if security_slos and device.get('type') == 'Lighting':
-            return True
-        
-        return False
-
 
 class EmergencyAgent(BaseAgent):
     """Agent focused on emergency response and safety"""
@@ -729,18 +495,18 @@ Analyze the current context and provide specific device actions based on occupan
                 })
             reasoning_parts.append("Increasing ventilation for high occupancy")
         
-        decision = {
-            "agent_id": self.agent_id,
-            "agent_type": self.agent_type.value,
-            "priority": self.config.priority_weight,
-            "timestamp": datetime.now().isoformat(),
-            "decisions": decisions,
-            "reasoning": "; ".join(reasoning_parts) if reasoning_parts else "Occupancy-based optimization complete",
-            "scores": {"comfort": 0.7, "energy": 0.8, "reliability": 0.6, "security": 0.5},
-            "confidence": 0.7
-        }
-        
-        return decision
+            decision = {
+                "agent_id": self.agent_id,
+                "agent_type": self.agent_type.value,
+                "priority": self.config.priority_weight,
+                "timestamp": datetime.now().isoformat(),
+                "decisions": decisions,
+                "reasoning": "; ".join(reasoning_parts) if reasoning_parts else "Occupancy-based optimization complete",
+                "scores": {"comfort": 0.7, "energy": 0.8, "reliability": 0.6, "security": 0.5},
+                "confidence": 0.7
+            }
+            
+            return decision
         
         # Security decision logic
         lights_on = sum(1 for light in lighting_devices if light.get('status') == 'ON')
@@ -775,15 +541,71 @@ class ComfortAgent(BaseAgent):
         super().__init__(agent_id)
         self.config = AgentRegistry.get_agent_config(AgentType.COMFORT)
         self.agent_type = AgentType.COMFORT
+        self.gemini_client = get_gemini_client()
     
     async def make_decision(self, context: dict) -> dict:
-        """
-        Make comfort-focused decisions based on:
-        - Temperature and humidity
-        - Occupancy and activity type
-        - Air quality
-        - User preferences
-        """
+        """Make comfort-focused decisions using Google Gemini LLM"""
+        if self.gemini_client and is_gemini_available():
+            return await self._make_llm_decision(context)
+        else:
+            return await self._make_fallback_decision(context)
+    
+    async def _make_llm_decision(self, context: dict) -> dict:
+        """Generate decision using Gemini LLM"""
+        try:
+            prompt = self._load_agent_prompt()
+            llm_response = await self.gemini_client.generate_decision(prompt, context)
+            
+            decision = {
+                "agent_id": self.agent_id,
+                "agent_type": self.agent_type.value,
+                "priority": self.config.priority_weight,
+                "timestamp": datetime.now().isoformat(),
+                "decisions": llm_response.get("decisions", []),
+                "reasoning": llm_response.get("reasoning", "Comfort agent decision"),
+                "scores": llm_response.get("scores", {"comfort": 1.0, "energy": 0.3, "reliability": 0.7, "security": 0.2}),
+                "confidence": llm_response.get("confidence", 0.8)
+            }
+            
+            return decision
+            
+        except Exception as e:
+            print(f"Error in ComfortAgent LLM decision: {e}")
+            return await self._make_fallback_decision(context)
+    
+    def _load_agent_prompt(self) -> str:
+        """Load agent-specific prompt template"""
+        prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "comfort_agent_prompt.txt")
+        try:
+            with open(prompt_path, 'r') as f:
+                return f.read()
+        except FileNotFoundError:
+            return self._get_default_prompt()
+    
+    def _get_default_prompt(self) -> str:
+        """Default comfort agent prompt"""
+        return """
+You are a Comfort Agent responsible for occupant comfort and well-being.
+
+MISSION: Maintain optimal comfort conditions while balancing energy efficiency and other building needs.
+
+KEY RESPONSIBILITIES:
+- Manage temperature control systems for optimal comfort
+- Ensure proper lighting for activities and wellbeing
+- Maintain air quality and circulation
+- Respond to occupancy patterns and preferences
+
+DECISION PRINCIPLES:
+1. Prioritize occupant comfort within reasonable energy bounds
+2. Adjust systems based on occupancy levels and activities
+3. Maintain temperature within comfort ranges (22-24°C)
+4. Ensure adequate air circulation for occupied spaces
+
+Analyze the current context and provide specific device actions to optimize comfort.
+"""
+    
+    async def _make_fallback_decision(self, context: dict) -> dict:
+        """Fallback rule-based decision when LLM unavailable"""
         room_data = context.get('room_data', {})
         devices = context.get('devices', [])
         slos = context.get('slos', [])
@@ -849,16 +671,71 @@ class EnergyAgent(BaseAgent):
         super().__init__(agent_id)
         self.config = AgentRegistry.get_agent_config(AgentType.ENERGY_EFFICIENCY)
         self.agent_type = AgentType.ENERGY_EFFICIENCY
+        self.gemini_client = get_gemini_client()
         
     async def make_decision(self, context: dict) -> dict:
-        """
-        Make energy-focused decisions based on:
-        - Power consumption patterns
-        - Occupancy status
-        - Device efficiency
-        - Time-of-use rates
-        """
-        room_data = context.get('room_data', {})
+        """Make energy-focused decisions using Google Gemini LLM"""
+        if self.gemini_client and is_gemini_available():
+            return await self._make_llm_decision(context)
+        else:
+            return await self._make_fallback_decision(context)
+    
+    async def _make_llm_decision(self, context: dict) -> dict:
+        """Generate decision using Gemini LLM"""
+        try:
+            prompt = self._load_agent_prompt()
+            llm_response = await self.gemini_client.generate_decision(prompt, context)
+            
+            decision = {
+                "agent_id": self.agent_id,
+                "agent_type": self.agent_type.value,
+                "priority": self.config.priority_weight,
+                "timestamp": datetime.now().isoformat(),
+                "decisions": llm_response.get("decisions", []),
+                "reasoning": llm_response.get("reasoning", "Energy agent decision"),
+                "scores": llm_response.get("scores", {"comfort": 0.3, "energy": 1.0, "reliability": 0.6, "security": 0.4}),
+                "confidence": llm_response.get("confidence", 0.8)
+            }
+            
+            return decision
+            
+        except Exception as e:
+            print(f"Error in EnergyAgent LLM decision: {e}")
+            return await self._make_fallback_decision(context)
+    
+    def _load_agent_prompt(self) -> str:
+        """Load agent-specific prompt template"""
+        prompt_path = os.path.join(os.path.dirname(__file__), "prompts", "energy_agent_prompt.txt")
+        try:
+            with open(prompt_path, 'r') as f:
+                return f.read()
+        except FileNotFoundError:
+            return self._get_default_prompt()
+    
+    def _get_default_prompt(self) -> str:
+        """Default energy agent prompt"""
+        return """
+You are an Energy Agent responsible for optimizing energy consumption and efficiency.
+
+MISSION: Minimize energy usage while maintaining essential building operations and occupant comfort.
+
+KEY RESPONSIBILITIES:
+- Optimize power consumption across all building systems
+- Implement energy-saving strategies during off-peak hours
+- Coordinate with other agents to balance energy vs comfort/security
+- Monitor and reduce wasteful energy usage
+
+DECISION PRINCIPLES:
+1. Minimize energy consumption without compromising critical operations
+2. Turn off non-essential systems in unoccupied areas
+3. Optimize HVAC and lighting based on occupancy patterns
+4. Consider time-of-use rates and peak demand periods
+
+Analyze the current context and provide specific device actions to optimize energy usage.
+"""
+    
+    async def _make_fallback_decision(self, context: dict) -> dict:
+        """Fallback rule-based decision when LLM unavailable"""
         devices = context.get('devices', [])
         sensor_data = context.get('sensor_data', {})
         
