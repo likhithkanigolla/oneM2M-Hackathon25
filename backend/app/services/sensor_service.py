@@ -13,6 +13,26 @@ from sqlalchemy import desc, and_
 from app.database import get_db
 from app.models.sensor import Sensor, SensorData, SensorAlert, SensorType
 
+
+class SensorService:
+    """Main service class for sensor operations (alias for SensorDataService)"""
+    
+    def __init__(self):
+        pass
+    
+    async def get_latest_sensor_data(self, room_id: int) -> Dict[str, Any]:
+        """Get the latest sensor data for a room"""
+        # For now, return mock data - in production this would query the database
+        return {
+            'temperature': 22.5,
+            'humidity': 45,
+            'co2': 400,
+            'occupancy': 0,
+            'light_level': 300,
+            'timestamp': datetime.now().isoformat()
+        }
+
+
 class SensorDataService:
     """Service for managing IoT sensor data"""
     

@@ -9,6 +9,7 @@ from app.api.routes.users import router as users_router
 from app.api.routes.analytics import router as analytics_router
 from app.api.routes.auth import router as auth_router
 from app.api.routes.llm_test import router as llm_test_router
+from app.routers.decisions import router as decisions_router
 from app.database import engine, Base
 # ensure models are imported so metadata is registered
 import app.models  # noqa: F401
@@ -31,6 +32,7 @@ app.include_router(slos_router, prefix="/api/slos", tags=["slos"])
 app.include_router(scenarios_router, prefix="/api/scenarios", tags=["scenarios"])
 app.include_router(users_router, prefix="/api/users", tags=["users"])
 app.include_router(analytics_router, prefix="/api/analytics", tags=["analytics"])
+app.include_router(decisions_router, prefix="/api/decisions", tags=["decisions"])
 app.include_router(llm_test_router)
 
 @app.on_event("startup")

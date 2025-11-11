@@ -1,0 +1,79 @@
+{
+  "status": "completed",
+  "total_time_seconds": 0.755113,
+  "successful_tests": 1,
+  "total_tests": 7,
+  "success_rate": 14.285714285714285,
+  "recommendation": "DO NOT DEPLOY",
+  "detailed_results": {
+    "llm_available": false,
+    "agent_tests": {
+      "security": {
+        "success": true,
+        "response_time_ms": 0.026702880859375,
+        "decisions_count": 0,
+        "confidence": 0.7,
+        "reasoning_length": 30
+      },
+      "comfort": {
+        "success": true,
+        "response_time_ms": 0.013113021850585938,
+        "decisions_count": 1,
+        "confidence": 0.0,
+        "reasoning_length": 67
+      },
+      "energy": {
+        "success": true,
+        "response_time_ms": 0.008106231689453125,
+        "decisions_count": 0,
+        "confidence": 0.0,
+        "reasoning_length": 61
+      },
+      "emergency": {
+        "success": true,
+        "response_time_ms": 0.003814697265625,
+        "decisions_count": 0,
+        "confidence": 0.9,
+        "reasoning_length": 32
+      },
+      "environmental": {
+        "success": true,
+        "response_time_ms": 0.00476837158203125,
+        "decisions_count": 1,
+        "confidence": 0.7,
+        "reasoning_length": 44
+      },
+      "occupancy": {
+        "success": true,
+        "response_time_ms": 0.0057220458984375,
+        "decisions_count": 1,
+        "confidence": 0.7,
+        "reasoning_length": 41
+      }
+    },
+    "slo_evaluation": {
+      "success": false,
+      "error": "No module named 'app'"
+    },
+    "coordination": {
+      "success": false,
+      "error": "No module named 'app'"
+    },
+    "plan_scoring": {
+      "success": false,
+      "error": "No module named 'app'"
+    },
+    "execution_engine": {
+      "success": false,
+      "error": "No module named 'app'"
+    },
+    "end_to_end": {
+      "success": true,
+      "workflow_time_ms": 0.012874603271484375,
+      "violations_detected": 3,
+      "urgency_level": "high",
+      "recommended_execution_mode": "AUTO"
+    }
+  },
+  "timestamp": "2025-11-11T19:28:44.451824"
+}
