@@ -9,9 +9,16 @@ import os
 import json
 import asyncio
 from typing import Dict, List, Any, Optional
-import google.generativeai as genai
 from datetime import datetime
 from ..config import settings
+
+# The google.generativeai package is optional. If it's not installed
+# set `genai = None` so the rest of the code can handle the absence
+# and fall back to rule-based decisions.
+try:
+    import google.generativeai as genai
+except Exception:
+    genai = None
 
 class GeminiLLMClient:
     """
