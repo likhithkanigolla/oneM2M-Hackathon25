@@ -13,7 +13,7 @@ from typing import Deque
 
 
 class LLMRateLimiter:
-    def __init__(self, max_calls: int = 9, period: float = 60.0):
+    def __init__(self, max_calls: int = 5, period: float = 60.0):
         self.max_calls = max_calls
         self.period = period
         self._timestamps: Deque[float] = deque()
@@ -60,9 +60,9 @@ import os
 # Can be configured with environment variable LLM_MAX_REQUESTS_PER_MINUTE.
 _env_max = os.getenv("LLM_MAX_REQUESTS_PER_MINUTE")
 try:
-    _max_calls = int(_env_max) if _env_max is not None else 9
+    _max_calls = int(_env_max) if _env_max is not None else 5
 except ValueError:
-    _max_calls = 9
+    _max_calls = 5
 
 _global_llm_rate_limiter: LLMRateLimiter = LLMRateLimiter(max_calls=_max_calls, period=60.0)
 

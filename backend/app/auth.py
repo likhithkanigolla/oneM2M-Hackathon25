@@ -80,12 +80,15 @@ def verify_token(credentials: HTTPAuthorizationCredentials = Depends(security)):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-def get_current_user(token_data: dict = Depends(verify_token), db: Session = Depends()):
-    """Get current user from token"""
-    from app.database import get_db
+def get_current_user(token_data: dict = Depends(verify_token), db: Session = Depends(__import__('app.database', fromlist=['get_db']).get_db)):
+    """Get current user from token
+
+    The DB session is provided via Depends(get_db). This avoids FastAPI creating
+    ambiguous forward references for transaction-related types during dependency
+    resolution.
+    """
     from app.models.user import User
-    
-    db = next(get_db())
+
     username = token_data.get("sub")
     user = db.query(User).filter(User.username == username).first()
     if user is None:
