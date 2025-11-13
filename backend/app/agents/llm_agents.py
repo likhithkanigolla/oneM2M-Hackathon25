@@ -462,76 +462,78 @@ Analyze the current context and provide specific device actions based on occupan
         """Fallback rule-based decision"""
         sensor_data = context.get('sensor_data', {})
         devices = context.get('devices', [])
-        
-        decisions = []
-        reasoning_parts = []
-        
         occupancy = sensor_data.get('occupancy', 0)
-        
-        # Adjust systems based on occupancy
+
+        # Device groups
         lighting_devices = [d for d in devices if d.get('type') == 'Lighting']
         hvac_devices = [d for d in devices if d.get('type') == 'HVAC']
-        
+        security_devices = [d for d in devices if d.get('type') == 'Security']
+
+        # Build base decision structure
+        decision = {
+            "agent_id": self.agent_id,
+            "agent_type": self.agent_type.value,
+            "priority": self.config.priority_weight,
+            "timestamp": datetime.now().isoformat(),
+            "decisions": [],
+            "reasoning": "",
+            "scores": {"comfort": 0.7, "energy": 0.8, "reliability": 0.6, "security": 0.5},
+            "confidence": 0.7
+        }
+
+        reasoning_parts = []
+
         if occupancy == 0:
             # Reduce systems for unoccupied space
             for light in lighting_devices:
                 if light.get('status') == 'ON':
-                    decisions.append({
+                    decision["decisions"].append({
                         "device_id": light.get('id'),
                         "action": "dim",
                         "parameters": {"brightness": 0.1},
                         "priority": 0.6
                     })
             reasoning_parts.append("Dimming lights for unoccupied space")
-        
+
         elif occupancy > 5:  # High occupancy
             # Increase ventilation and lighting
             for hvac in hvac_devices:
-                decisions.append({
+                decision["decisions"].append({
                     "device_id": hvac.get('id'),
                     "action": "increase_ventilation",
                     "parameters": {"ventilation_level": "high"},
                     "priority": 0.7
                 })
             reasoning_parts.append("Increasing ventilation for high occupancy")
-        
-            decision = {
-                "agent_id": self.agent_id,
-                "agent_type": self.agent_type.value,
-                "priority": self.config.priority_weight,
-                "timestamp": datetime.now().isoformat(),
-                "decisions": decisions,
-                "reasoning": "; ".join(reasoning_parts) if reasoning_parts else "Occupancy-based optimization complete",
-                "scores": {"comfort": 0.7, "energy": 0.8, "reliability": 0.6, "security": 0.5},
-                "confidence": 0.7
-            }
-            
-            return decision
-        
-        # Security decision logic
+
+        # Security decision logic: ensure at least one light on for surveillance
         lights_on = sum(1 for light in lighting_devices if light.get('status') == 'ON')
-        
-        if lights_on == 0:
-            # Critical: No lights on - security risk
-            for light in lighting_devices[:1]:  # Turn on at least one light
-                decision["decisions"].append({
-                    "device_id": light.get('id'),
-                    "action": "turn_on",
-                    "reason": "Security requirement: At least one light must be on for surveillance"
-                })
-            decision["reasoning"] = "CRITICAL: No lighting detected. Activated minimum lighting for security compliance."
+        if lights_on == 0 and lighting_devices:
+            # Turn on one light for minimal surveillance
+            light = lighting_devices[0]
+            decision["decisions"].append({
+                "device_id": light.get('id'),
+                "action": "turn_on",
+                "parameters": {},
+                "priority": 0.9,
+                "reason": "Security requirement: At least one light must be on for surveillance"
+            })
+            reasoning_parts.append("Activated minimum lighting for security compliance")
         else:
-            decision["reasoning"] = f"Security OK: {lights_on} lights currently on for surveillance."
-            
+            reasoning_parts.append(f"Security OK: {lights_on} lights currently on for surveillance.")
+
         # Ensure security devices are operational
         for sec_device in security_devices:
             if sec_device.get('status') != 'ON':
                 decision["decisions"].append({
                     "device_id": sec_device.get('id'),
-                    "action": "turn_on", 
+                    "action": "turn_on",
+                    "parameters": {},
+                    "priority": 0.8,
                     "reason": "Security device must remain operational"
                 })
-        
+
+        decision["reasoning"] = "; ".join(reasoning_parts) if reasoning_parts else "Occupancy-based optimization complete"
         return decision
 
 class ComfortAgent(BaseAgent):

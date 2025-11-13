@@ -15,6 +15,7 @@ from ..agents.llm_agents import (
     EmergencyAgent, EnvironmentalAgent, OccupancyAgent
 )
 from .slo_service import SLOService
+from ..agents.agent_config import AgentType
 from ..models.slo import SLO
 
 
@@ -140,16 +141,25 @@ class ConflictResolver:
     
     def _safety_first_resolution(self, agent_decisions: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Prioritize safety and emergency decisions"""
-        
         # Priority order: Emergency > Security > Environmental > Comfort > Occupancy > Energy
         priority_order = [
-            'EMERGENCY_RESPONSE', 'SECURITY', 'ENVIRONMENTAL', 
-            'COMFORT', 'OCCUPANCY', 'ENERGY_EFFICIENCY'
+            AgentType.EMERGENCY_RESPONSE.value,
+            AgentType.SECURITY.value,
+            AgentType.ENVIRONMENTAL.value,
+            AgentType.COMFORT.value,
+            AgentType.OCCUPANCY.value,
+            AgentType.ENERGY_EFFICIENCY.value,
         ]
-        
-        # Sort decisions by safety priority
-        sorted_decisions = sorted(agent_decisions, 
-                                key=lambda x: priority_order.index(x.get('agent_type', 'ENERGY_EFFICIENCY')))
+
+        # Sort decisions by safety priority. If agent_type not found, treat as low priority.
+        def _priority_key(x):
+            atype = x.get('agent_type')
+            try:
+                return priority_order.index(atype)
+            except ValueError:
+                return len(priority_order)
+
+        sorted_decisions = sorted(agent_decisions, key=_priority_key)
         
         device_assignments = {}
         resolved_actions = []

@@ -13,6 +13,7 @@ from app.routers.decisions import router as decisions_router
 from app.database import engine, Base
 # ensure models are imported so metadata is registered
 import app.models  # noqa: F401
+from app.tasks.periodic_coordinator import periodic_coordinator_loop, COORDINATOR_INTERVAL_SECONDS
 
 app = FastAPI(title="Smart Room Digital Twin API")
 
@@ -34,11 +35,18 @@ app.include_router(users_router, prefix="/api/users", tags=["users"])
 app.include_router(analytics_router, prefix="/api/analytics", tags=["analytics"])
 app.include_router(decisions_router, prefix="/api/decisions", tags=["decisions"])
 app.include_router(llm_test_router)
+from app.api.routes.sensors import router as sensors_router
+app.include_router(sensors_router, prefix="/api/sensors", tags=["sensors"])
 
 @app.on_event("startup")
 async def startup():
     # create tables
     Base.metadata.create_all(bind=engine)
+    # start periodic coordinator task (runs in background every COORDINATOR_INTERVAL_SECONDS)
+    import asyncio
+    # keep a reference to the task so it isn't garbage collected
+    task = asyncio.create_task(periodic_coordinator_loop())
+    app.state.coordinator_task = task
 
 @app.get("/")
 async def root():

@@ -21,6 +21,7 @@ from ..services.slo_service import SLOService
 from ..models.slo import SLO
 from ..models.room import Room
 from ..models.device import Device
+from ..models.decision_log import DecisionLog
 
 router = APIRouter()
 
@@ -338,6 +339,80 @@ async def approve_execution_plan(
         
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Approval failed: {str(e)}")
+
+
+@router.post("/admin-resolve")
+async def admin_resolve(
+    request: Dict[str, Any],
+    db: Session = Depends(get_db)
+):
+    """Record an admin resolution when agents tie/near-tie and optionally update room summary.
+
+    Expected request body:
+    {
+        "room_id": int,
+        "chosen_agent_id": "agent-id-or-name",
+        "chosen_decision": "decision text",
+        "admin": "admin_username",
+        "notes": "optional notes"
+    }
+    """
+    try:
+        room_id = request.get('room_id')
+        chosen_agent_id = request.get('chosen_agent_id')
+        chosen_decision = request.get('chosen_decision')
+        admin = request.get('admin', 'admin')
+        notes = request.get('notes', '')
+
+        if not room_id or not chosen_decision:
+            raise HTTPException(status_code=400, detail="room_id and chosen_decision are required")
+
+        room = db.query(Room).filter(Room.id == room_id).first()
+        if not room:
+            raise HTTPException(status_code=404, detail="Room not found")
+
+        # Create a DecisionLog entry representing the admin's choice
+        log = DecisionLog(
+            agent_id=chosen_agent_id or f"admin:{admin}",
+            room_id=room_id,
+            decision=chosen_decision,
+            reasoning=f"Admin resolution by {admin}. {notes}",
+            comfort_score=None,
+            energy_score=None,
+            reliability_score=None,
+            context={"resolved_by": admin, "notes": notes}
+        )
+
+        db.add(log)
+        db.commit()
+        db.refresh(log)
+
+        # Update room summary to indicate admin resolution
+        summary = getattr(room, 'last_coordination_summary', {}) or {}
+        admin_res = {
+            "admin": admin,
+            "chosen_agent_id": chosen_agent_id,
+            "chosen_decision": chosen_decision,
+            "notes": notes,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        summary['admin_resolution'] = admin_res
+        room.last_coordination_summary = summary
+        room.last_coordinated_at = datetime.utcnow()
+
+        db.add(room)
+        db.commit()
+
+        return {
+            "message": "Admin resolution recorded",
+            "decision_log": log.to_dict(),
+            "room_summary": room.last_coordination_summary
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Admin resolution failed: {str(e)}")
 
 
 @router.get("/pending-approvals")

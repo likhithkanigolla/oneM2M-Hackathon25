@@ -11,6 +11,7 @@ import asyncio
 from typing import Dict, List, Any, Optional
 from datetime import datetime
 from ..config import settings
+from .llm_rate_limiter import get_global_llm_rate_limiter
 
 # The google.generativeai package is optional. If it's not installed
 # set `genai = None` so the rest of the code can handle the absence
@@ -29,10 +30,13 @@ class GeminiLLMClient:
         self.api_key = settings.GOOGLE_API_KEY
         if not self.api_key:
             raise ValueError("GOOGLE_API_KEY not configured in settings")
-        
+        # Ensure the SDK is available
+        if genai is None:
+            raise RuntimeError("google.generativeai package is not installed")
+
         # Configure the API
         genai.configure(api_key=self.api_key)
-        
+
         # Use Gemini 2.5 Flash model for decision making (fast and efficient)
         self.model = genai.GenerativeModel('models/gemini-2.5-flash')
         
@@ -50,7 +54,11 @@ class GeminiLLMClient:
         try:
             # Create the full prompt with context
             full_prompt = self._build_full_prompt(prompt, context)
-            
+
+            # Respect global LLM rate limit before issuing the API call
+            limiter = get_global_llm_rate_limiter()
+            await limiter.acquire()
+
             # Generate response using Gemini
             response = await self._make_api_call(full_prompt)
             
@@ -252,19 +260,31 @@ Do not include any text before or after the JSON response.
 
 # Global instance
 gemini_client = None
+_gemini_init_attempted = False
 
-def get_gemini_client() -> GeminiLLMClient:
-    """Get or create global Gemini client instance"""
-    global gemini_client
-    if gemini_client is None:
-        try:
-            gemini_client = GeminiLLMClient()
-        except Exception as e:
-            print(f"Failed to initialize Gemini client: {e}")
-            print("LLM agents will use fallback decision logic")
-            gemini_client = None
+
+def get_gemini_client() -> Optional[GeminiLLMClient]:
+    """Get or create global Gemini client instance.
+
+    This function will only attempt initialization once per process to avoid
+    spamming logs when the optional SDK isn't installed or configuration is
+    invalid.
+    """
+    global gemini_client, _gemini_init_attempted
+    if _gemini_init_attempted:
+        return gemini_client
+
+    _gemini_init_attempted = True
+    try:
+        gemini_client = GeminiLLMClient()
+    except Exception as e:
+        print(f"Failed to initialize Gemini client: {e}")
+        print("LLM agents will use fallback decision logic")
+        gemini_client = None
+
     return gemini_client
 
+
 def is_gemini_available() -> bool:
-    """Check if Gemini API is available"""
-    return settings.GOOGLE_API_KEY is not None
+    """Check if Gemini API is available and SDK installed/configured."""
+    return genai is not None and bool(settings.GOOGLE_API_KEY)

@@ -16,6 +16,7 @@ from app.schemas.analytics import (
 from app.models.room import Room
 from app.models.agent import Agent
 from app.models.slo import SLO
+from app.models.decision_log import DecisionLog
 
 router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
@@ -81,37 +82,46 @@ async def get_agent_decisions(room_id: int, db: Session = Depends(get_db)):
     room = db.query(Room).filter(Room.id == room_id).first()
     if not room:
         raise HTTPException(status_code=404, detail="Room not found")
-    
-    agents = db.query(Agent).all()
-    if not agents:
+    # Query recent decision logs for this room (most recent first)
+    logs = db.query(DecisionLog).filter(DecisionLog.room_id == room_id).order_by(DecisionLog.timestamp.desc()).limit(50).all()
+
+    if not logs:
         return []
-    
-    # Generate realistic agent decisions
+
     decisions = []
-    now = datetime.now()
-    
-    decision_templates = [
-        {"decision": "Prioritize comfort", "reasoning": "Meeting in progress with 8 participants"},
-        {"decision": "Reduce energy consumption", "reasoning": "Peak hour pricing detected"},
-        {"decision": "Increase ventilation", "reasoning": "CO2 levels approaching threshold"},
-        {"decision": "Maintain current settings", "reasoning": "Optimal balance achieved"},
-        {"decision": "Activate emergency mode", "reasoning": "Equipment malfunction detected"},
-        {"decision": "Switch to eco mode", "reasoning": "Room unoccupied for 30+ minutes"}
-    ]
-    
-    for i, template in enumerate(decision_templates[:6]):
-        time_point = now - timedelta(minutes=(i+1)*20)
-        agent = agents[i % len(agents)]
-        
+    for log in logs:
+        # Map agent id to agent name if possible
+        agent = db.query(Agent).filter(Agent.id == log.agent_id).first()
+        agent_name = agent.name if agent else (log.agent_id or "unknown")
+
         decisions.append(AgentDecision(
-            time=time_point.strftime("%H:%M"),
-            agent=agent.name,
-            decision=template["decision"],
-            confidence=round(random.uniform(0.75, 0.98), 2),
-            reasoning=template["reasoning"]
+            time=log.timestamp.strftime("%H:%M") if log.timestamp else "",
+            agent=agent_name,
+            decision=log.decision or "",
+            confidence=round((log.comfort_score or 0.0 + log.energy_score or 0.0 + log.reliability_score or 0.0) / 3.0, 2),
+            reasoning=log.reasoning or ""
         ))
-    
+
     return decisions
+
+
+@router.get("/coordination-rounds/{room_id}")
+async def get_coordination_rounds(room_id: int, db: Session = Depends(get_db)):
+    """Return latest coordination summary and recent decision logs for a room"""
+    room = db.query(Room).filter(Room.id == room_id).first()
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found")
+
+    # Recent logs
+    logs = db.query(DecisionLog).filter(DecisionLog.room_id == room_id).order_by(DecisionLog.timestamp.desc()).limit(100).all()
+
+    return {
+        "room_id": room_id,
+        "room_name": room.name,
+        "last_coordinated_at": room.last_coordinated_at.isoformat() if getattr(room, 'last_coordinated_at', None) else None,
+        "last_coordination_summary": room.last_coordination_summary,
+        "recent_decision_logs": [l.to_dict() for l in logs]
+    }
 
 @router.get("/slo-performance/{room_id}")
 async def get_slo_performance(room_id: int, db: Session = Depends(get_db)):

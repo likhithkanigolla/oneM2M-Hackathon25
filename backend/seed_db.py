@@ -13,6 +13,7 @@ from app.models.agent import Agent
 from app.models.slo import SLO
 from app.models.scenario import Scenario
 from app.models.user import User
+from app.auth import get_password_hash
 
 def create_sample(session):
     # Check if data already exists for all entity types
@@ -116,7 +117,7 @@ def create_sample(session):
         role="admin", 
         is_active=True,
         assigned_rooms=[1, 2, 3, 4],  # Access to all rooms
-        password="admin123"
+        password=get_password_hash("admin123")
     )
     user2 = User(
         username="operator_a", 
@@ -125,7 +126,7 @@ def create_sample(session):
         role="operator", 
         is_active=True,
         assigned_rooms=[1, 2],  # Limited access
-        password="operator123"
+        password=get_password_hash("operator123")
     )
     user3 = User(
         username="operator_b", 
@@ -134,7 +135,7 @@ def create_sample(session):
         role="operator", 
         is_active=True,
         assigned_rooms=[3, 4],  # Limited access
-        password="operator456"
+        password=get_password_hash("operator456")
     )
     
     session.add_all([user1, user2, user3])
