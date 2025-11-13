@@ -65,7 +65,7 @@ export default function RoomDetails() {
   }
 
   // Transform SLO data for radar chart - use backend data or fallback
-  const sloData = sloPerformance.length > 0 ? [
+  const sloData = Array.isArray(sloPerformance) && sloPerformance.length > 0 ? [
     {
       slo: "Comfort",
       Gemini: sloPerformance.find(s => s.name === "Comfort")?.performance_score || 0.65,
@@ -92,7 +92,7 @@ export default function RoomDetails() {
   ];
 
   // Use backend agent decisions or fallback
-  const llmDecisions = agentDecisions.length > 0 ? agentDecisions.map(decision => ({
+  const llmDecisions = Array.isArray(agentDecisions) && agentDecisions.length > 0 ? agentDecisions.map(decision => ({
     agent: decision.agent,
     goal: "Smart Decision Making",
     decision: decision.decision,
@@ -304,9 +304,9 @@ export default function RoomDetails() {
               Power Usage
             </CardTitle>
           </CardHeader>
-          <CardContent>
+            <CardContent>
             <div className="text-3xl font-bold">
-              {(room.devices.filter((d) => d.status === "ON").length * 12.5).toFixed(1)}W
+              {((room.devices || []).filter((d) => d.status === "ON").length * 12.5).toFixed(1)}W
             </div>
           </CardContent>
         </Card>

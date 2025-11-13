@@ -8,8 +8,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { useAgents } from "@/store/useAgents";
 
 export default function LLMInsights() {
-  const { agents, fetchAgents } = useAgents();
-  const { historicalData, fetchHistoricalData } = useAnalytics();
+  const { agents = [], fetchAgents } = useAgents();
+  const { historicalData = [], fetchHistoricalData } = useAnalytics();
 
   useEffect(() => {
     fetchAgents();
@@ -17,7 +17,7 @@ export default function LLMInsights() {
   }, [fetchAgents, fetchHistoricalData]);
 
   // Transform agents data to match the expected format or use fallback
-  const agentsWithInsights = agents.length > 0 ? agents.map(agent => ({
+  const agentsWithInsights = Array.isArray(agents) && agents.length > 0 ? agents.map(agent => ({
     id: agent.id,
     name: agent.name,
     goal: agent.goal || "Optimization",
@@ -59,10 +59,17 @@ export default function LLMInsights() {
     },
   ];
 
-  const [selectedAgent, setSelectedAgent] = useState(agentsWithInsights[0]);
+  const [selectedAgent, setSelectedAgent] = useState(() => agentsWithInsights && agentsWithInsights.length > 0 ? agentsWithInsights[0] : null);
+
+  useEffect(() => {
+    // Ensure a selected agent exists after fetch
+    if (!selectedAgent && agentsWithInsights && agentsWithInsights.length > 0) {
+      setSelectedAgent(agentsWithInsights[0]);
+    }
+  }, [agentsWithInsights, selectedAgent]);
 
   // Use backend historical data or fallback
-  const chartHistoricalData = historicalData.length > 0 ? historicalData : [
+  const chartHistoricalData = Array.isArray(historicalData) && historicalData.length > 0 ? historicalData : [
     { time: "10:00", comfort: 0.7, energy: 0.85, reliability: 0.8 },
     { time: "11:00", comfort: 0.75, energy: 0.82, reliability: 0.85 },
     { time: "12:00", comfort: 0.8, energy: 0.78, reliability: 0.82 },
@@ -71,11 +78,11 @@ export default function LLMInsights() {
     { time: "15:00", comfort: 0.88, energy: 0.77, reliability: 0.90 },
   ];
 
-  const scoreData = [
+  const scoreData = selectedAgent ? [
     { slo: "Comfort", score: selectedAgent.scores.comfort },
     { slo: "Energy", score: selectedAgent.scores.energy },
     { slo: "Reliability", score: selectedAgent.scores.reliability },
-  ];
+  ] : [];
 
   return (
     <div className="container mx-auto px-6 py-6 space-y-6 animate-fade-in">
