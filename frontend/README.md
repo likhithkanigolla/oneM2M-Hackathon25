@@ -1,73 +1,64 @@
-# Welcome to your Lovable project
+# Frontend (UI) — oneM2M Hackathon25
 
-## Project info
+This folder contains the React frontend for the Digital Twin / Smart Building demo app.
 
-**URL**: https://lovable.dev/projects/12a3ec6f-db89-422e-a368-f43768ad1d47
+Purpose
+- Provide dashboards for Analytics, Rooms, Agents, and LLM insights.
+- Consume backend APIs served by the FastAPI backend at `/api/*`.
 
-## How can I edit this code?
+Quick start (development)
+1. Install dependencies
+```bash
+cd frontend
+# using npm
+npm install
+# or using pnpm / yarn if you prefer
+```
 
-There are several ways of editing your application.
+2. Run the dev server
+```bash
+npm run dev
+# open http://localhost:5173 (Vite default)
+```
 
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/12a3ec6f-db89-422e-a368-f43768ad1d47) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+Backend integration (local)
+- The frontend expects a backend API base URL at `VITE_API_BASE` (used in the stores). By default the app uses an environment variable `VITE_API_BASE` at build/dev time.
+- Example when running backend locally on port 8000:
+```bash
+export VITE_API_BASE=http://localhost:8000
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+LLM and rate-limiting notes
+- The backend integrates with Google Gemini for LLM-driven agent reasoning. Gemini has strict per-project rate limits (default free-tier: 10 generate requests / minute per model).
+- The backend includes a process-local async rate limiter configured by default to 9 requests/minute to avoid hitting the 10/min quota. The setting can be overridden with the environment variable `LLM_MAX_REQUESTS_PER_MINUTE` on the backend process.
+- Important: the limiter is process-local. If you run multiple backend workers (uvicorn with `--workers`), or additional hosts using the same Gemini key, you will still exceed project-wide quotas. For multi-worker deployments use a centralized limiter (Redis) — see backend notes.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Frontend developer notes
+- Pages that show data from the backend: `Analytics`, `RoomDetails`, `LLMInsights`, `Agents`, `SLOConfig`.
+- Stores (Zustand) are in `frontend/src/store/*` and provide fetch functions that call the backend `VITE_API_BASE` endpoints. The frontend pages use sensible fallbacks when the backend is not available.
+- When testing without Gemini (or to avoid consuming quota), either:
+  - Do not set `GOOGLE_API_KEY` in the backend environment, or
+  - Set `LLM_MAX_REQUESTS_PER_MINUTE=0` (backend will fall back to rule-based agents), or
+  - Run the backend in a single process and leave the limiter default at 9/min.
 
-**Use GitHub Codespaces**
+Recommended workflow for end-to-end testing
+1. Start and seed the backend (see `/backend/README.md`). Ensure dependencies are installed in the backend venv and the database is seeded.
+2. Export `VITE_API_BASE` pointing at the running backend.
+3. Start the frontend: `npm run dev` and open the UI.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Helpful backend endpoints (examples)
+- `GET /api/rooms/` — list rooms
+- `GET /api/slos/` — list SLOs
+- `GET /api/analytics/` — historical analytics data
+- `GET /api/agents/` — list configured agents
+- `POST /api/decisions/coordinate` — trigger a coordination run (backend handles periodic runs too)
 
-## What technologies are used for this project?
+Contributing
+- Keep UI changes small and test with backend running. If you add pages that request LLM-driven endpoints, be mindful of quota and use the backend's rate limiter.
 
-This project is built with:
+Contact / Next steps
+- If you want, I can add simple loading skeletons to the pages or wire additional endpoints into the stores. I can also implement a Redis-backed global rate limiter for the backend to enforce Gemini quotas across multiple processes.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/12a3ec6f-db89-422e-a368-f43768ad1d47) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+---
+`frontend/` — React + Vite app (TypeScript). Build artifacts are produced by the Vite toolchain.
