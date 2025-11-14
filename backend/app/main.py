@@ -45,8 +45,11 @@ async def startup():
     # start periodic coordinator task (runs in background every COORDINATOR_INTERVAL_SECONDS)
     import asyncio
     # keep a reference to the task so it isn't garbage collected
-    task = asyncio.create_task(periodic_coordinator_loop())
-    app.state.coordinator_task = task
+    
+    
+    # Uncomment the following lines to enable the periodic coordinator loop
+    # task = asyncio.create_task(periodic_coordinator_loop())
+    # app.state.coordinator_task = task
 
 @app.get("/")
 async def root():
