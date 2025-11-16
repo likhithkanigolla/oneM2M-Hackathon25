@@ -15,7 +15,7 @@ from app.database import engine, Base
 import app.models  # noqa: F401
 from app.tasks.periodic_coordinator import periodic_coordinator_loop, COORDINATOR_INTERVAL_SECONDS
 
-app = FastAPI(title="Smart Room Digital Twin API")
+app = FastAPI(title="BuildSense AI-IoT Platform Digital Twin API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -53,4 +53,4 @@ async def startup():
 
 @app.get("/")
 async def root():
-    return {"message": "Smart Room Digital Twin API - Now with LLM Intelligence!"}
+    return {"message": "BuildSense AI-IoT Platform Digital Twin API - Now with LLM Intelligence!"}

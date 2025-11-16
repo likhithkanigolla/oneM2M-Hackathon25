@@ -3,7 +3,7 @@
 ## 🎯 What We Accomplished
 
 ### ✅ Full Backend API Ecosystem
-- **Rooms API**: CRUD operations for smart rooms and devices
+- **Rooms API**: CRUD operations for BuildSense AI-IoT Platforms and devices
 - **Agents API**: Manage AI agents (Gemini, Claude, GPT)
 - **SLOs API**: Service Level Objectives configuration
 - **Scenarios API**: System scenarios management  
@@ -172,4 +172,4 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 The backend API ecosystem is complete and tested. All endpoints work correctly with proper CORS, error handling, and data persistence. The frontend stores are updated to use the real APIs instead of mock data.
 
-**You now have a production-ready Smart Room Digital Twin backend with complete CRUD operations for all entities and real-time capabilities.**
+**You now have a production-ready BuildSense AI-IoT Platform Digital Twin backend with complete CRUD operations for all entities and real-time capabilities.**

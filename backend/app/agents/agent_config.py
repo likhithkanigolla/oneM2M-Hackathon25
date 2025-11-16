@@ -2,7 +2,7 @@
 LLM Agent Types and Configuration
 
 This module defines different types of LLM agents, each with specific goals,
-priorities, and decision-making capabilities for the smart room system.
+priorities, and decision-making capabilities for the BuildSense AI-IoT Platform system.
 """
 
 from enum import Enum

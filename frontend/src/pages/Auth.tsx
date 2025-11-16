@@ -66,7 +66,7 @@ export default function AuthPage() {
             <Activity className="h-7 w-7 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Smart Room</h1>
+            <h1 className="text-2xl font-bold text-black">BuildSense AI-IoT Platform</h1>
             <p className="text-sm text-muted-foreground">Control Center</p>
           </div>
         </div>
@@ -77,10 +77,10 @@ export default function AuthPage() {
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="login" className="space-y-4">
-              <TabsList className="flex w-full justify-center">
+              {/* <TabsList className="flex w-full justify-center">
                 <TabsTrigger value="login" className="px-16 text-lg font-semibold">Login</TabsTrigger>
-                {/* <TabsTrigger value="register">Register</TabsTrigger> */}
-              </TabsList>
+                <TabsTrigger value="register">Register</TabsTrigger>
+              </TabsList> */}
               
               {error && (
                 <Alert variant="destructive">

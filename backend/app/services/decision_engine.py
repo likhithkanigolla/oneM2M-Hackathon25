@@ -2,7 +2,7 @@
 Multi-Agent Decision Engine
 
 This engine orchestrates multiple LLM agents to make collective decisions
-about smart room control, handling conflicts and priorities.
+about BuildSense AI-IoT Platform control, handling conflicts and priorities.
 """
 
 import json
@@ -62,7 +62,7 @@ class CollectiveDecision:
 
 class MultiAgentDecisionEngine:
     """
-    Orchestrates multiple LLM agents for smart room decision making
+    Orchestrates multiple LLM agents for BuildSense AI-IoT Platform decision making
     """
     
     def __init__(self, db: Session):

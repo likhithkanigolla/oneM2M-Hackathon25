@@ -1,8 +1,8 @@
 """
-Specialized LLM Agents for Smart Room Decision Making
+Specialized LLM Agents for BuildSense AI-IoT Platform Decision Making
 
 This module contains implementations of different LLM agents,
-each designed for specific aspects of smart room management.
+each designed for specific aspects of BuildSense AI-IoT Platform management.
 """
 
 import json
