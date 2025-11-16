@@ -305,7 +305,7 @@ export default function Agents() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">RAG Sources</p>
                 <div className="flex flex-wrap gap-1 mt-1">
-                  {agent.rag_sources.map((source, idx) => (
+                  {(agent.rag_sources || []).map((source, idx) => (
                     <Badge key={idx} variant="outline" className="text-xs">
                       {source}
                     </Badge>
